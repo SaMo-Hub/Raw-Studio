@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle pour les utilisateurs/clés d'accès
+model AccessKey {
+  id        String   @id @default(cuid())
+  value     String   @unique // Hash bcrypt du mot de passe
+  role      String   @default("ADMIN") // ADMIN ou USER
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([isActive])
+}
+
+// Modèle pour les projets
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  
+  // Description
+  shortDesc   String   // 1-2 lignes
+  longDesc    String   // Déscription complète (markdown possible)
+  
+  // Contenu visuel
+  images      String   // JSON array de URLs
+  videos      String?  // JSON array de URLs vidéo (optionnel)
+  
+  // Stack technique
+  technologies String  // JSON array
+  
+  // Métadonnées
+  externalLink String? // Lien vers le site/démo
+  featured    Boolean  @default(false) // Projet en vedette
+  displayOrder Int     @default(0) // Ordre d'affichage
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([featured])
+  @@index([displayOrder])
+}
