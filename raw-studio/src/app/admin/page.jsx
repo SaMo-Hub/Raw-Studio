@@ -50,7 +50,10 @@ export default function AdminDashboard() {
           </Link>
           <div className="flex items-center gap-6">
             <Link href="/admin" className="text-sm font-medium">
-              Admin
+              Projects
+            </Link>
+            <Link href="/admin/service-keys" className="text-sm hover:opacity-60 transition">
+              Service Keys
             </Link>
             <form
               action={async () => {
