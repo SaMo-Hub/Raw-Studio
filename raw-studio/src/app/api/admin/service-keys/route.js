@@ -9,7 +9,9 @@ export async function GET(request) {
       where: { role: "SERVICE" },
       select: {
         id: true,
-        value: true,
+        password: true,
+        name: true,
+        description: true,
         isActive: true,
         createdAt: true,
         expiresAt: true,
@@ -29,7 +31,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { password, expiresAt } = await request.json();
+    const { password, name, description } = await request.json();
 
     if (!password || password.length < 6) {
       return NextResponse.json(
@@ -45,12 +47,17 @@ export async function POST(request) {
     const newKey = await prisma.accessKey.create({
       data: {
         value: hashedPassword,
+        password: password, // Stocker le mot de passe en clair
+        name: name || null,
+        description: description || null,
         role: "SERVICE",
         isActive: true,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
       select: {
         id: true,
+        password: true,
+        name: true,
+        description: true,
         isActive: true,
         createdAt: true,
         expiresAt: true,

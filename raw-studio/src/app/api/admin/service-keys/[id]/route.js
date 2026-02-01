@@ -6,7 +6,7 @@ export async function PUT(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
-    const { password, isActive } = await request.json();
+    const { password, name, description, isActive } = await request.json();
 
     const key = await prisma.accessKey.findUnique({
       where: { id },
@@ -30,6 +30,17 @@ export async function PUT(request, context) {
         );
       }
       updateData.value = await bcrypt.hash(password, 10);
+      updateData.password = password; // Stocker en clair aussi
+    }
+
+    // Si on veut changer le nom
+    if (name !== undefined) {
+      updateData.name = name || null;
+    }
+
+    // Si on veut changer la description
+    if (description !== undefined) {
+      updateData.description = description || null;
     }
 
     // Si on veut changer le statut
@@ -42,6 +53,9 @@ export async function PUT(request, context) {
       data: updateData,
       select: {
         id: true,
+        password: true,
+        name: true,
+        description: true,
         isActive: true,
         createdAt: true,
         expiresAt: true,

@@ -7,11 +7,13 @@ export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ password: "" });
+  const [formData, setFormData] = useState({ password: "", name: "", description: "" });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editPassword, setEditPassword] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   // Charger les clés
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function ServiceKeysPage() {
       if (response.ok) {
         const newKey = await response.json();
         setKeys([newKey, ...keys]);
-        setFormData({ password: "" });
+        setFormData({ password: "", name: "", description: "" });
         setShowForm(false);
       } else {
         const data = await response.json();
@@ -88,7 +90,11 @@ export default function ServiceKeysPage() {
       const response = await fetch(`/api/admin/service-keys/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: editPassword }),
+        body: JSON.stringify({ 
+          password: editPassword,
+          name: editName,
+          description: editDescription,
+        }),
       });
 
       if (response.ok) {
@@ -96,9 +102,11 @@ export default function ServiceKeysPage() {
         setKeys(keys.map((k) => (k.id === id ? updated : k)));
         setEditingId(null);
         setEditPassword("");
+        setEditName("");
+        setEditDescription("");
       } else {
         const data = await response.json();
-        setError(data.error || "Failed to update password");
+        setError(data.error || "Failed to update");
       }
     } catch (err) {
       setError("An error occurred");
@@ -180,9 +188,39 @@ export default function ServiceKeysPage() {
                     id="password"
                     value={formData.password}
                     onChange={(e) =>
-                      setFormData({ password: e.target.value })
+                      setFormData({ ...formData, password: e.target.value })
                     }
                     placeholder="Enter password (min. 6 characters)"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium mb-2">
+                    Name (optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="e.g., Service User 1"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium mb-2">
+                    Description (optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    placeholder="e.g., For team member John"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
@@ -198,7 +236,7 @@ export default function ServiceKeysPage() {
                     type="button"
                     onClick={() => {
                       setShowForm(false);
-                      setFormData({ password: "" });
+                      setFormData({ password: "", name: "", description: "" });
                     }}
                     className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                   >
@@ -226,9 +264,19 @@ export default function ServiceKeysPage() {
                   className="p-6 border border-gray-200 rounded-lg"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">Key ID</p>
-                      <p className="font-mono text-sm break-all">{key.id}</p>
+                    <div className="flex-1">
+                      {key.name && (
+                        <div className="mb-3">
+                          <p className="text-lg font-bold">{key.name}</p>
+                          {key.description && (
+                            <p className="text-sm text-gray-600">{key.description}</p>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-500 mb-1">Password</p>
+                      <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">
+                        {key.password || "****"}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
@@ -262,17 +310,43 @@ export default function ServiceKeysPage() {
 
                   {/* Édition du mot de passe */}
                   {editingId === key.id ? (
-                    <div className="mb-4 p-4 bg-gray-50 rounded border border-gray-200">
-                      <label className="block text-sm font-medium mb-2">
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        value={editPassword}
-                        onChange={(e) => setEditPassword(e.target.value)}
-                        placeholder="Enter new password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-black"
-                      />
+                    <div className="mb-4 p-4 bg-gray-50 rounded border border-gray-200 space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Service user name"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Description
+                        </label>
+                        <input
+                          type="text"
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="e.g., For team member John"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          New Password (leave empty to keep current)
+                        </label>
+                        <input
+                          type="password"
+                          value={editPassword}
+                          onChange={(e) => setEditPassword(e.target.value)}
+                          placeholder="Enter new password (optional)"
+                          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                        />
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleUpdatePassword(key.id)}
@@ -284,6 +358,8 @@ export default function ServiceKeysPage() {
                           onClick={() => {
                             setEditingId(null);
                             setEditPassword("");
+                            setEditName("");
+                            setEditDescription("");
                           }}
                           className="px-4 py-2 border border-gray-300 text-sm rounded hover:bg-gray-50 transition"
                         >
@@ -297,10 +373,15 @@ export default function ServiceKeysPage() {
                   <div className="flex gap-3">
                     {editingId !== key.id && (
                       <button
-                        onClick={() => setEditingId(key.id)}
+                        onClick={() => {
+                          setEditingId(key.id);
+                          setEditPassword("");
+                          setEditName(key.name || "");
+                          setEditDescription(key.description || "");
+                        }}
                         className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition"
                       >
-                        Change Password
+                        Edit
                       </button>
                     )}
                     <button

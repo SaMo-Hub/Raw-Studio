@@ -16,6 +16,7 @@ async function main() {
   const adminKey = await prisma.accessKey.create({
     data: {
       value: hashedPasswordAdmin,
+      password: "admin123",
       role: "ADMIN",
       isActive: true,
     },
@@ -29,6 +30,8 @@ async function main() {
   const serviceKey = await prisma.accessKey.create({
     data: {
       value: hashedPasswordService,
+      password: "service123",
+      name: "Default Service User",
       role: "SERVICE",
       isActive: true,
     },

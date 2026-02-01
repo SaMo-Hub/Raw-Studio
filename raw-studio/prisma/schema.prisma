@@ -9,14 +9,17 @@ datasource db {
 
 // Modèle pour les utilisateurs/clés d'accès
 model AccessKey {
-  id        String   @id @default(cuid())
-  value     String   @unique // Hash bcrypt du mot de passe
-  role      String   @default("ADMIN") // ADMIN ou USER
-  expiresAt DateTime?
-  isActive  Boolean  @default(true)
+  id          String   @id @default(cuid())
+  value       String   @unique // Hash bcrypt du mot de passe
+  password    String?  // Mot de passe en clair (optionnel, pour affichage)
+  name        String?  // Nom de la clé (ex: "Service User 1")
+  description String?  // Description optionnelle
+  role        String   @default("ADMIN") // ADMIN ou SERVICE
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
   @@index([isActive])
 }
