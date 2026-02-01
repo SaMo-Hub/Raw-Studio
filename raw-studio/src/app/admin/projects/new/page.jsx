@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 export default function NewProjectPage() {
   const [formData, setFormData] = useState({
@@ -96,13 +97,8 @@ export default function NewProjectPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            RAW STUDIO
-          </Link>
-        </div>
-      </nav>
+                 <Navbar />
+     
 
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-2xl mx-auto">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
@@ -43,31 +44,8 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            RAW STUDIO
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/admin" className="text-sm font-medium">
-              Projects
-            </Link>
-            <Link href="/admin/service-keys" className="text-sm hover:opacity-60 transition">
-              Service Keys
-            </Link>
-            <form
-              action={async () => {
-                await fetch("/api/auth/logout", { method: "POST" });
-                router.push("/");
-              }}
-            >
-              <button type="submit" className="text-sm font-medium hover:opacity-60">
-                Logout
-              </button>
-            </form>
-          </div>
-        </div>
-      </nav>
+                 <Navbar />
+     
 
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-6xl mx-auto">

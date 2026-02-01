@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -44,53 +45,47 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
-      <div className="w-full max-w-md">
+            <Navbar />
+      
+      <div className="w-full flex flex-col  items-center justify-center">
         {/* Header */}
-        <div className="text-center mb-12">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            RAW STUDIO
-          </Link>
-          <h1 className="text-3xl font-bold mt-8 mb-2">Admin Access</h1>
-          <p className="text-gray-600">Enter your password to continue</p>
-        </div>
-
+       
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
-              Password
-            </label>
+        <form onSubmit={handleSubmit} className="flex h-fit bg-black w-fit p-1 ">
+         
+          
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className="text-white px-3 "
               disabled={loading}
             />
-          </div>
+         
 
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+        
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-900 disabled:opacity-50 transition"
+            className="w-fit  py-2 px-3 bg-white text-black  font-medium  hover:bg-gray-900 disabled:opacity-50 transition"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in..." : "Login"}
           </button>
+          
         </form>
-
+  {error && (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
         {/* Demo Info */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+        {/* <div className="mt-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
           <p className="font-medium mb-2">Demo Credentials:</p>
           <p>Password: <code className="bg-white px-2 py-1 rounded font-mono">admin123</code></p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
