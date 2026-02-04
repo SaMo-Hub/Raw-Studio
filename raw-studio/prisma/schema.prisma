@@ -44,6 +44,7 @@ model Project {
   // Métadonnées
   externalLink String? // Lien vers le site/démo
   featured    Boolean  @default(false) // Projet en vedette
+  isActive    Boolean  @default(true) // Projet visible ou non
   displayOrder Int     @default(0) // Ordre d'affichage
   
   createdAt   DateTime @default(now())
@@ -51,5 +52,6 @@ model Project {
   
   @@index([slug])
   @@index([featured])
+  @@index([isActive])
   @@index([displayOrder])
 }

@@ -100,12 +100,12 @@ export default function Home() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group cursor-pointer block h-screen rounded-lg overflow-hidden"
+                        className="group cursor-pointer block h-screen bg-amber-800 rounded-lg overflow-hidden"
                       >
                         <img
                           src={projectImages[0]}
                           alt={project.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          className="w-full h-full object-cover bg-amber-800 group-hover:scale-105 transition duration-300"
                         />
                       </Link>
                     );
@@ -125,12 +125,12 @@ export default function Home() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group cursor-pointer block h-screen rounded-lg overflow-hidden"
+                        className="group cursor-pointer block h-screen bg-amber-800 rounded-lg overflow-hidden"
                       >
                         <img
                           src={projectImages[0]}
                           alt={project.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          className="w-full h-full  object-cover group-hover:scale-105 transition duration-300"
                         />
                       </Link>
                     );

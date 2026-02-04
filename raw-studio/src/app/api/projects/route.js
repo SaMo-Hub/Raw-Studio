@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 export async function GET() {
   try {
     const projects = await prisma.project.findMany({
+      where: { isActive: true }, // Afficher seulement les projets actifs
       orderBy: { displayOrder: "asc" },
     });
     return Response.json(projects);

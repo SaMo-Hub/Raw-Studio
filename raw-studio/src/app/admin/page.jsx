@@ -16,7 +16,7 @@ export default function AdminDashboard() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/projects");
+      const response = await fetch("/api/admin/projects");
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
@@ -25,6 +25,22 @@ export default function AdminDashboard() {
       console.error("Failed to fetch projects:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (id, currentStatus) => {
+    try {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !currentStatus }),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setProjects(projects.map((p) => (p.id === id ? updated : p)));
+      }
+    } catch (error) {
+      console.error("Toggle failed:", error);
     }
   };
 
@@ -86,6 +102,15 @@ export default function AdminDashboard() {
                   <div>
                     <h3 className="font-medium text-lg">{project.title}</h3>
                     <p className="text-sm text-gray-600 mt-1">{project.shortDesc}</p>
+                    <span
+                      className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
+                        project.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {project.isActive ? "Active" : "Inactive"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-4">
                     <Link
@@ -100,6 +125,16 @@ export default function AdminDashboard() {
                     >
                       Edit
                     </Link>
+                    <button
+                      onClick={() => handleToggleActive(project.id, project.isActive)}
+                      className={`text-sm ${
+                        project.isActive
+                          ? "text-yellow-600 hover:underline"
+                          : "text-green-600 hover:underline"
+                      }`}
+                    >
+                      {project.isActive ? "Deactivate" : "Activate"}
+                    </button>
                     <button
                       onClick={() => handleDelete(project.id)}
                       className="text-sm text-red-600 hover:underline"

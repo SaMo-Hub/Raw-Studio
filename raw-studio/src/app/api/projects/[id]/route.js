@@ -35,7 +35,7 @@ export async function PUT(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
-    const { title, slug, shortDesc, longDesc, images, technologies, externalLink, featured, displayOrder } =
+    const { title, slug, shortDesc, longDesc, images, technologies, externalLink, featured, displayOrder, isActive } =
       await request.json();
 
     const project = await prisma.project.update({
@@ -50,6 +50,7 @@ export async function PUT(request, context) {
         ...(externalLink !== undefined && { externalLink }),
         ...(featured !== undefined && { featured }),
         ...(displayOrder !== undefined && { displayOrder }),
+        ...(isActive !== undefined && { isActive }),
       },
     });
 
