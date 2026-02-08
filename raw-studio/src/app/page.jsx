@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -58,7 +57,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
 
 {/* <div className="w-full  flex">
   <div className="bg-yellow-800 w-full h-screen ">

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
@@ -59,10 +58,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-                 <Navbar />
-     
-
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}

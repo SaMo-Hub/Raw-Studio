@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -45,8 +44,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
-            <Navbar />
-      
       <div className="w-full flex flex-col  items-center justify-center">
         {/* Header */}
        

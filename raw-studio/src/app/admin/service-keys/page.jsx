@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 
 export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
@@ -159,8 +158,6 @@ export default function ServiceKeysPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-6xl mx-auto">
           {/* Titre */}

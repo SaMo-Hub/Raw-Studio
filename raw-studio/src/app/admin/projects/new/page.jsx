@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+
+const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
 export default function NewProjectPage() {
   const [formData, setFormData] = useState({
@@ -11,7 +12,7 @@ export default function NewProjectPage() {
     slug: "",
     shortDesc: "",
     longDesc: "",
-    technologies: "",
+    categories: [],
     externalLink: "",
     featured: false,
   });
@@ -26,6 +27,15 @@ export default function NewProjectPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleCategoryChange = (category) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter((c) => c !== category)
+        : [...prev.categories, category],
     }));
   };
 
@@ -77,7 +87,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           ...formData,
           images: uploadedImages,
-          technologies: formData.technologies.split(",").map((t) => t.trim()),
+          technologies: formData.categories,
         }),
       });
 
@@ -96,10 +106,6 @@ export default function NewProjectPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-                 <Navbar />
-     
-
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
@@ -210,17 +216,25 @@ export default function NewProjectPage() {
               )}
             </div>
 
-            {/* Technologies */}
+            {/* Categories */}
             <div>
-              <label className="block text-sm font-medium mb-2">Technologies (comma-separated)</label>
-              <input
-                type="text"
-                name="technologies"
-                value={formData.technologies}
-                onChange={handleChange}
-                placeholder="React, Next.js, Tailwind"
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-black"
-              />
+              <label className="block text-sm font-medium mb-4">Categories</label>
+              <div className="flex flex-wrap gap-3">
+                {CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => handleCategoryChange(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      formData.categories.includes(category)
+                        ? "bg-black text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Lien externe */}

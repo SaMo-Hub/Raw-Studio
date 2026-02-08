@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import LenisWrapper from "@/components/LenisWrapper";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,8 +20,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased bg-white text-gray-900`} suppressHydrationWarning>
+      <body className={`${inter.variable} font-neue font-medium text-xs antialiased bg-white text-gray-900`} suppressHydrationWarning>
         <LenisWrapper>
+          <Navbar />
           {children}
         </LenisWrapper>
       </body>

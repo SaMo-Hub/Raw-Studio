@@ -45,13 +45,7 @@ export default function ProjectDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold tracking-tight">
-              RAW STUDIO
-            </Link>
-          </div>
-        </nav>
+      
         <div className="pt-20 flex items-center justify-center min-h-screen">
           <p className="text-gray-600">Loading...</p>
         </div>
@@ -62,13 +56,7 @@ export default function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div className="min-h-screen bg-white">
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold tracking-tight">
-              RAW STUDIO
-            </Link>
-          </div>
-        </nav>
+       
         <div className="pt-20 px-6 pb-12">
           <div className="max-w-5xl mx-auto">
             <div className="mb-8">
@@ -94,18 +82,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            RAW STUDIO
-          </Link>
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-sm font-medium hover:opacity-60 transition">
-              Portfolio
-            </Link>
-          </div>
-        </div>
-      </nav>
+   
 
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-5xl mx-auto">
@@ -168,24 +145,24 @@ export default function ProjectDetailPage() {
                 {project.longDesc}
               </p>
 
-              {/* Technologies */}
+              {/* Categories */}
               {project.technologies && (
                 (() => {
-                  const techs = typeof project.technologies === 'string' 
+                  const cats = typeof project.technologies === 'string' 
                     ? JSON.parse(project.technologies) 
                     : project.technologies;
-                  return techs && techs.length > 0 && (
+                  return cats && cats.length > 0 && (
                     <div className="mb-8">
                       <h3 className="text-sm font-bold uppercase tracking-wider mb-4 text-gray-400">
-                        Technologies
+                        Categories
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {techs.map((tech, index) => (
+                        {cats.map((cat, index) => (
                           <span
                             key={index}
                             className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded"
                           >
-                            {tech}
+                            {cat}
                           </span>
                         ))}
                       </div>
@@ -235,16 +212,16 @@ export default function ProjectDetailPage() {
 
                   {project.technologies && (
                     (() => {
-                      const techs = typeof project.technologies === 'string' 
+                      const cats = typeof project.technologies === 'string' 
                         ? JSON.parse(project.technologies) 
                         : project.technologies;
-                      return techs && techs.length > 0 && (
+                      return cats && cats.length > 0 && (
                         <div>
                           <p className="text-xs uppercase tracking-wider text-gray-400 mb-2">
-                            Stack
+                            Categories
                           </p>
                           <p className="font-medium text-sm">
-                            {techs.slice(0, 2).join(", ")}
+                            {cats.slice(0, 2).join(", ")}
                           </p>
                         </div>
                       );

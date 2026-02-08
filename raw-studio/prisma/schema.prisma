@@ -41,6 +41,10 @@ model Project {
   // Stack technique
   technologies String  // JSON array
   
+  // Infos du projet
+  client      String?  // Nom du client
+  projectDate DateTime? // Date du projet
+  
   // Métadonnées
   externalLink String? // Lien vers le site/démo
   featured    Boolean  @default(false) // Projet en vedette

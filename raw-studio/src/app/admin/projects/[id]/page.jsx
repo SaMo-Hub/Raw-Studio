@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
+const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
+
 export default function EditProjectPage() {
   const params = useParams();
   const id = params?.id;
@@ -37,13 +39,13 @@ export default function EditProjectPage() {
         if (response.ok) {
           const project = await response.json();
           
-          // Parse technologies si c'est une string JSON
-          let techs = "";
+          // Parse categories si c'est une string JSON
+          let cats = [];
           if (project.technologies) {
             const parsedTechs = typeof project.technologies === 'string' 
               ? JSON.parse(project.technologies) 
               : project.technologies;
-            techs = Array.isArray(parsedTechs) ? parsedTechs.join(", ") : "";
+            cats = Array.isArray(parsedTechs) ? parsedTechs : [];
           }
           
           // Parse images si c'est une string JSON
@@ -59,7 +61,7 @@ export default function EditProjectPage() {
             slug: project.slug || "",
             shortDesc: project.shortDesc || "",
             longDesc: project.longDesc || "",
-            technologies: techs,
+            categories: cats,
             externalLink: project.externalLink || "",
             featured: project.featured || false,
           });
@@ -86,6 +88,15 @@ export default function EditProjectPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleCategoryChange = (category) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter((c) => c !== category)
+        : [...prev.categories, category],
     }));
   };
 
@@ -137,7 +148,7 @@ export default function EditProjectPage() {
         body: JSON.stringify({
           ...formData,
           images: uploadedImages,
-          technologies: formData.technologies.split(",").map((t) => t.trim()),
+          technologies: formData.categories,
         }),
       });
 
@@ -173,13 +184,7 @@ export default function EditProjectPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight">
-            RAW STUDIO
-          </Link>
-        </div>
-      </nav>
+   
 
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-2xl mx-auto">
@@ -291,17 +296,25 @@ export default function EditProjectPage() {
               )}
             </div>
 
-            {/* Technologies */}
+            {/* Categories */}
             <div>
-              <label className="block text-sm font-medium mb-2">Technologies (comma-separated)</label>
-              <input
-                type="text"
-                name="technologies"
-                value={formData.technologies}
-                onChange={handleChange}
-                placeholder="React, Next.js, Tailwind"
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-black"
-              />
+              <label className="block text-sm font-medium mb-4">Categories</label>
+              <div className="flex flex-wrap gap-3">
+                {CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => handleCategoryChange(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      formData.categories.includes(category)
+                        ? "bg-black text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Lien externe */}
