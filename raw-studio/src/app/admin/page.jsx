@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
+import Image from "next/image";
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
@@ -58,6 +60,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Navbar */}
+                 <Navbar />
+     
+
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -94,6 +100,24 @@ export default function AdminDashboard() {
                   key={project.id}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
                 >
+                  {(() => {
+                    try {
+                      const images = typeof project.images === "string" ? JSON.parse(project.images) : project.images;
+                      const firstImage = Array.isArray(images) ? images[0] : images;
+                      return firstImage ? (
+                        <Image
+                          src={firstImage}
+                          alt={project.title}
+                          width={80}
+                          height={80}
+                          className="rounded-lg object-cover"
+                        />
+                      ) : null;
+                    } catch (e) {
+                      return null;
+                    }
+                  })()}
+             
                   <div>
                     <h3 className="font-medium text-lg">{project.title}</h3>
                     <p className="text-sm text-gray-600 mt-1">{project.shortDesc}</p>

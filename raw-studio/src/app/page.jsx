@@ -72,7 +72,7 @@ export default function Home() {
         <div className="">
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-screen overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 ">
               {[1, 2].map((i) => (
                 <div
                   key={i}
@@ -85,11 +85,11 @@ export default function Home() {
               <p className="text-gray-600">No projects yet. Check back soon!</p>
             </div>
           ) : (
-            <div ref={sectionsRef} className="grid min-h-screen grid-cols-1 md:grid-cols-2">
+            <div ref={sectionsRef} className="grid grid-cols-1 md:grid-cols-2">
               {/* Colonne gauche - scroll vers le haut */}
-              <div className="overflow-hidden w-full min-h-screen">
+              <div className="h-full w-full ">
                 <div style={{ transform: `translateY(${-scrollY * 0}px)` }} className="w-full">
-                  {projects.filter((_, i) => i % 2 === 0).slice(0, 2).map((project) => {
+                  {projects.filter((_, i) => i % 2 === 0).map((project) => {
                     const projectImages = typeof project.images === 'string' 
                       ? JSON.parse(project.images) 
                       : (Array.isArray(project.images) ? project.images : []);
@@ -112,9 +112,9 @@ export default function Home() {
               </div>
 
               {/* Colonne droite - scroll vers le bas */}
-              <div className="overflow-hidden w-full min-h-screen">
-                <div style={{ transform: `translateY(${-windowHeight + scrollY * 2}px)` }} className="w-full">
-                  {projects.filter((_, i) => i % 2 === 1).slice(0, 2).map((project) => {
+              <div className="overflow-hidden w-full h-full">
+                <div style={{ transform: `translateY(${-totalHeight + windowHeight + scrollY * 2}px)` }} className="w-full">
+                  {projects.filter((_, i) => i % 2 === 1).map((project) => {
                     const projectImages = typeof project.images === 'string' 
                       ? JSON.parse(project.images) 
                       : (Array.isArray(project.images) ? project.images : []);

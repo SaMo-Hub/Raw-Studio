@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const CATEGORIES = ["ALL", "COMMERCIAL", "MUSIC VIDEO", "WEB"];
@@ -59,6 +59,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [viewMode, setViewMode] = useState("grid"); // grid, horizontal, list
+  const horizontalScrollRef = useRef(null);
 
   useEffect(() => {
     fetchProjects();
@@ -67,6 +68,22 @@ export default function ProjectsPage() {
   useEffect(() => {
     filterProjects(selectedCategory);
   }, [selectedCategory, projects]);
+
+  // Gestion du scroll horizontal avec souris/touchpad
+  useEffect(() => {
+    const handleWheel = (e) => {
+      if (viewMode === "horizontal") {
+        const container = horizontalScrollRef.current;
+        if (container) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    document.addEventListener("wheel", handleWheel, { passive: false });
+    return () => document.removeEventListener("wheel", handleWheel);
+  }, [viewMode]);
 
   const fetchProjects = async () => {
     try {
@@ -129,9 +146,9 @@ export default function ProjectsPage() {
 
   return (
     <div className=" bg-white pt-24">
-      <div className="px-12">
+      <div className="">
         {/* Sidebar Left - Categories */}
-        <div className="flex justify-between">
+        <div className="flex px-12 justify-between">
           <div className="gap-4 flex">
             {CATEGORIES.map((category) => (
               <button
@@ -156,7 +173,7 @@ export default function ProjectsPage() {
               <button
                 key={mode.id}
                 onClick={() => setViewMode(mode.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
+                className={`w-full flex items-center gap-2 px-3 py-2  text-sm transition-colors ${
                   viewMode === mode.id
                     ? "bg-black text-white"
                     : "border border-gray-200 text-gray-700 hover:border-gray-400"
@@ -170,7 +187,7 @@ export default function ProjectsPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 py-12">
+        <div className="h-full flex-1 pt-12">
           <div className=" ">
             {loading ? (
               <div className="text-center py-12">
@@ -186,26 +203,24 @@ export default function ProjectsPage() {
               <>
                 {/* Grid View */}
                 {viewMode === "grid" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="uppercase grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
                     {filteredProjects.map((project) => (
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group cursor-pointer"
                       >
-                        <div className="relative overflow-hidden bg-gray-100 aspect-square rounded-lg mb-4">
+                        <div className="relative overflow-hidden bg-gray-100 aspect-square ">
                           <img
                             src={getProjectImage(project)}
                             alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            className="w-full  h-full object-cover group-hover:scale-105 transition duration-300"
                           />
                         </div>
-                        <h3 className="semibold text-lg mb-2 group-hover:text-gray-600 transition">
+                        <h3 className="mt-2 ml-1 transition">
                           {project.title}
                         </h3>
-                        <p className="text-sm text-gray-500">
-                          {project.shortDesc}
-                        </p>
+                      
                       </Link>
                     ))}
                   </div>
@@ -213,30 +228,22 @@ export default function ProjectsPage() {
 
                 {/* Horizontal View */}
                 {viewMode === "horizontal" && (
-                  <div className="space-y-6">
+                  <div ref={horizontalScrollRef} className="uppercase flex w-screen overflow-hidden">
                     {filteredProjects.map((project) => (
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group cursor-pointer flex gap-6 pb-6 border-b border-gray-200 last:border-b-0"
+                        className="group h-full cursor-pointer flex flex-col shrink-0"
                       >
-                        <div className="relative overflow-hidden bg-gray-100 w-40 h-40 rounded-lg flex-shrink-0">
+                        <div className="relative flex flex-col">
                           <img
                             src={getProjectImage(project)}
                             alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            className="h-[75vh] w-[400px] object-cover group-hover:scale-105 transition duration-300"
                           />
-                        </div>
-                        <div className="flex-1 py-2">
-                          <h3 className="semibold text-xl mb-2 group-hover:text-gray-600 transition">
+                          <h3 className="mt-2 ml-1 text-black transition">
                             {project.title}
                           </h3>
-                          <p className="text-gray-600 mb-3">
-                            {project.shortDesc}
-                          </p>
-                          <p className="text-sm text-gray-400">
-                            {project.longDesc.substring(0, 100)}...
-                          </p>
                         </div>
                       </Link>
                     ))}
@@ -245,29 +252,61 @@ export default function ProjectsPage() {
 
                 {/* List View */}
                 {viewMode === "list" && (
-                  <div className="relative space-y-3">
-                    <div></div>
+  <div className=" w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute uppercase px-12">
+                    {/* Image centrale fixe */}
+    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140  overflow-hidden pointer-events-none z-10">
+                      {filteredProjects.map((project, index) => (
+                        <img
+                          key={project.id}
+                          id={`project-image-${index}`}
+                          className="absolute w-full h-full bg-white object-cover  "
+                          src={getProjectImage(project)}
+                          alt={project.title}
+                        />
+                      ))}
+                    </div>
+
                     {filteredProjects.map((project, index) => (
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group uppercase semibold  text-sm cursor-pointer flex gap-24 items-center  "
+                        className="group uppercase semibold  text-sm bg-white py-6 cursor-pointer flex gap-24 items-center  "
+                        onMouseEnter={() => {
+                          // Masquer toutes les images
+                          filteredProjects.forEach((_, i) => {
+                            const img = document.getElementById(
+                              `project-image-${i}`,
+                            );
+                            if (img) img.style.opacity = "0";
+                          });
+                          // Afficher l'image du projet survolé
+                          const currentImg = document.getElementById(
+                            `project-image-${index}`,
+                          );
+                          if (currentImg) currentImg.style.opacity = "1";
+                        }}
+                        onMouseLeave={() => {
+                          // Masquer l'image au départ de la souris
+                          const currentImg = document.getElementById(
+                            `project-image-${index}`,
+                          );
+                          if (currentImg) currentImg.style.opacity = "0";
+                        }}
                       >
-                        <div className="relative w-1/5 -ml-12">
+                         <div className="relative py-2 bg-white w-1/5 -ml-12">
                           <h3 className="font-neue  ml-12">
                             {"["}
                             {index}
                             {"]"}
                           </h3>
-                          <div className=" bg-white mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 transition origin-left  absolute w-3/5 h-full top-0"></div>
+                          <div className=" bg-white -500 mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 transition origin-left  absolute w-3/5 h-full top-0"></div>
                         </div>
-                        <div className="absolute translate-x-2/4 2 left-1/2  top-1/2 -translate-y-1/2 w-40 h-40 rounded overflow-hidden">
-                          <img className="w-40 h-40 object-cover rounded z-0"  src={getProjectImage(project)}
-                            alt={project.title} />
-                        </div>
+
                         <h3 className="relative w-2/5">{project.title}</h3>
-                        <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">{project.client}</h3>
-                        <div className="relative w-1/5 justify-end flex -mr-12">
+                        <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">
+                          {project.client}
+                        </h3>
+                        <div className="relative py-2 bg-white w-1/5 justify-end flex -mr-12">
                           <h3 className=" relative mr-12">
                             {project.projectDate
                               ? new Date(project.projectDate).getFullYear()
