@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug;
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -41,6 +43,23 @@ export default function ProjectDetailPage() {
       fetchProject();
     }
   }, [slug]);
+
+  // Vérifier si l'utilisateur est admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch("/api/auth/verify");
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data.role === "ADMIN");
+        }
+      } catch (err) {
+        console.error("Failed to verify admin status:", err);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   if (loading) {
     return (
@@ -94,9 +113,19 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Titre du projet */}
-          <div className="mb-12">
-            <h1 className="text-5xl font-bold mb-4">{project.title}</h1>
-            <p className="text-xl text-gray-600">{project.shortDesc}</p>
+          <div className="mb-12 flex items-start justify-between">
+            <div>
+              <h1 className="text-5xl font-bold mb-4">{project.title}</h1>
+              <p className="text-xl text-gray-600">{project.shortDesc}</p>
+            </div>
+            {isAdmin && (
+              <Link
+                href={`/admin/projects/${project.id}`}
+                className="px-6 py-3 bg-black text-white text-sm font-medium rounded hover:bg-gray-900 transition whitespace-nowrap ml-4"
+              >
+                ✎ Edit
+              </Link>
+            )}
           </div>
 
           {/* Galerie d'images */}

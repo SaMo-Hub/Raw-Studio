@@ -61,7 +61,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
-                 <Navbar />
      
 
       <div className="pt-20 px-6 pb-12">

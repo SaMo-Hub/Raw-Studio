@@ -5,6 +5,14 @@
   src: url("../../public/font/PPNeueMontreal-Medium.otf") format("opentype");
 }
 
+/* Enlever les border-radius des inputs */
+input,
+select,
+textarea,
+button {
+  border-radius: 0 !important;
+}
+
 @theme {
   --font-neue: "Oldschool-Grotesk"; 
   --font-secondary: "Eighties", serif; 

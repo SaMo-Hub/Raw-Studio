@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
+import rawstudio from "../../public/logo/raw-studio.svg";
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState(null);
@@ -16,7 +17,7 @@ export default function Navbar() {
       try {
         const response = await fetch("/api/auth/session");
         const data = await response.json();
-        
+
         if (data.isLoggedIn) {
           setIsLoggedIn(true);
           setRole(data.role);
@@ -42,55 +43,77 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 uppercase right-0 z-50 bg-white/50 backdrop-blur-sm border-b border-gray-200">
+    <nav className="fixed top-0 left-0 uppercase right-0 z-50 text-white mix-blend-difference ">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-2xl  tracking-tight">
-          RAW STUDIO
+          <svg
+            width="51"
+            height="23"
+            viewBox="0 0 51 23"
+            fill="white"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M51 0H45.6115L45.0236 1.83296L41.8437 12.8374L36.9706 1.57665C36.5745 0.618554 35.6296 0 34.5507 0C33.4718 0 32.5387 0.618554 32.1474 1.56625L27.2841 12.8062L24.7146 4.10667C24.0005 1.68826 21.6843 0 19.0815 0H10.3986C8.46087 0.0264824 6.72468 0.450201 5.21835 1.26359V0H0V23H5.21835V11.2371C5.24379 8.44411 6.14954 6.60926 7.98941 5.62563C8.59586 5.29838 9.27273 5.10733 10.0054 5.05625C8.7504 6.94691 8.11559 9.10901 8.11559 11.5019C8.11559 15.0184 9.40086 17.9466 11.9303 20.1995C13.9834 22.058 16.3887 23 19.0893 23C20.9996 22.9801 22.773 22.4987 24.3761 21.5671C24.8016 22.4382 25.7025 23 26.7246 23H26.7579C27.826 23 28.7738 22.3805 29.167 21.4309L34.5566 9.01916L39.9412 21.4205C40.3373 22.3805 41.2832 23.0009 42.3523 23.0009H42.3914C43.5349 23.0009 44.5306 22.2916 44.87 21.2342L50.0923 3.20816L51 0ZM22.8268 16.3955C22.7192 16.4986 22.6067 16.6007 22.4883 16.6991C21.4759 17.5456 20.3609 17.956 19.0815 17.956C17.1946 17.956 15.7128 17.137 14.5547 15.4525C13.7438 14.2665 13.333 12.9376 13.333 11.5019C13.333 9.39843 14.1047 7.69409 15.6922 6.29242C16.3828 5.68048 17.1927 5.28703 18.1004 5.12246C18.1933 5.10544 18.2853 5.09787 18.3772 5.09787C19.0551 5.09787 19.684 5.54618 19.8757 6.20729L22.8268 16.3955Z"
+              fill="white"
+            />
+            <path d="M51 18.864H46.7568V23H51V18.864Z" fill="white" />
+          </svg>
         </Link>
 
         {/* Menu */}
         <div className="flex items-center gap-8">
-        
-          <Link href="/projects" className="text-xs medium hover:opacity-60 transition">
+          <Link
+            href="/projects"
+            className="text-xs medium hover:opacity-60 transition"
+          >
             Projects
           </Link>
-          <Link href="#about" className="text-xs medium hover:opacity-60 transition">
+          <Link
+            href="#about"
+            className="text-xs medium hover:opacity-60 transition"
+          >
             About
           </Link>
 
           {isLoggedIn ? (
             <>
-              <Link href="/admin" className="text-xs medium hover:opacity-60 transition">
+              <Link
+                href="/admin"
+                className="text-xs medium hover:opacity-60 transition"
+              >
                 Admin
               </Link>
-              
-              <button 
+
+              <button
                 onClick={() => setShowLogoutModal(true)}
                 className="text-xs uppercase medium hover:opacity-60 transition"
               >
                 Logout
               </button>
-               {role === "ADMIN" && (
+              {role === "ADMIN" && (
                 <Link
                   href="/admin/service-keys"
-                className="text-xs uppercase medium hover:opacity-60 transition"
+                  className="text-xs uppercase medium hover:opacity-60 transition"
                 >
-                 Password
+                  Password
                 </Link>
               )}
               {role === "ADMIN" && (
                 <Link
                   href="/admin/projects/new"
-                  className="text-white bg-black px-2 py-1 text-xs uppercase medium hover:opacity-60 transition "
+                  className="text-black bg-white px-2 py-1 text-xs uppercase medium hover:opacity-60 transition "
                 >
                   Add Project
                 </Link>
               )}
-             
             </>
           ) : (
-            <Link href="/login" className="text-xs medium hover:opacity-60 transition">
+            <Link
+              href="/login"
+              className="text-xs medium hover:opacity-60 transition"
+            >
               Login
             </Link>
           )}
@@ -99,16 +122,18 @@ export default function Navbar() {
 
       {/* Modal de confirmation */}
       {showLogoutModal && (
-        <div 
+        <div
           className="fixed inset-0 h-screen w-screen bg-black/50 flex items-center justify-center z-50"
           onClick={() => setShowLogoutModal(false)}
         >
-          <div 
+          <div
             className="bg-white p-8 rounded-lg max-w-sm w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl bold mb-4">Confirm Logout</h2>
-            <p className="text-gray-600 mb-6">Are you sure you want to disconnect?</p>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to disconnect?
+            </p>
             <div className="flex gap-4">
               <button
                 onClick={handleLogout}
@@ -126,5 +151,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-    </nav>  );
+    </nav>
+  );
 }

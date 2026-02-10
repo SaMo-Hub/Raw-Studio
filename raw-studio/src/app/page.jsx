@@ -76,7 +76,7 @@ export default function Home() {
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="bg-gray-100 rounded-lg animate-pulse"
+                  className="bg-gray-100 d-lg animate-pulse"
                 />
               ))}
             </div>
@@ -98,7 +98,7 @@ export default function Home() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group cursor-pointer block h-screen bg-amber-800 rounded-lg overflow-hidden"
+                        className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                       >
                         <img
                           src={projectImages[0]}
@@ -123,7 +123,7 @@ export default function Home() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.slug}`}
-                        className="group cursor-pointer block h-screen bg-amber-800 rounded-lg overflow-hidden"
+                        className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                       >
                         <img
                           src={projectImages[0]}

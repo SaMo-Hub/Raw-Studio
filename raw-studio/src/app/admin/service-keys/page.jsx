@@ -7,7 +7,7 @@ export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ password: "", name: "", description: "" });
+  const [formData, setFormData] = useState({ password: "", name: "", description: "", role: "SERVICE" });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -49,13 +49,14 @@ export default function ServiceKeysPage() {
           password: formData.password,
           name: formData.name,
           description: formData.description,
+          role: formData.role,
         }),
       });
 
       if (response.ok) {
         const newKey = await response.json();
         setKeys([newKey, ...keys]);
-        setFormData({ password: "", name: "", description: "" });
+        setFormData({ password: "", name: "", description: "", role: "SERVICE" });
         setShowForm(false);
       } else {
         const data = await response.json();
@@ -156,21 +157,97 @@ export default function ServiceKeysPage() {
     }
   };
 
+  const handleDeleteSelected = async () => {
+    if (selectedKeys.size === 0) return;
+    if (!confirm(`Delete ${selectedKeys.size} selected service key(s)?`)) return;
+
+    try {
+      for (const id of selectedKeys) {
+        await fetch(`/api/admin/service-keys/${id}`, {
+          method: "DELETE",
+        });
+      }
+      setKeys(keys.filter((k) => !selectedKeys.has(k.id)));
+      setSelectedKeys(new Set());
+    } catch (err) {
+      setError("Failed to delete selected keys");
+    }
+  };
+
+  const handleDeactivateSelected = async () => {
+    if (selectedKeys.size === 0) return;
+
+    try {
+      for (const id of selectedKeys) {
+        const key = keys.find((k) => k.id === id);
+        await fetch(`/api/admin/service-keys/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: false }),
+        });
+      }
+      setKeys(
+        keys.map((k) =>
+          selectedKeys.has(k.id) ? { ...k, isActive: false } : k
+        )
+      );
+      setSelectedKeys(new Set());
+    } catch (err) {
+      setError("Failed to deactivate selected keys");
+    }
+  };
+
+  const handleActivateSelected = async () => {
+    if (selectedKeys.size === 0) return;
+
+    try {
+      for (const id of selectedKeys) {
+        const key = keys.find((k) => k.id === id);
+        await fetch(`/api/admin/service-keys/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: true }),
+        });
+      }
+      setKeys(
+        keys.map((k) =>
+          selectedKeys.has(k.id) ? { ...k, isActive: true } : k
+        )
+      );
+      setSelectedKeys(new Set());
+    } catch (err) {
+      setError("Failed to activate selected keys");
+    }
+  };
+
+  // Déterminer l'état des clés sélectionnées
+  const getSelectedKeysState = () => {
+    if (selectedKeys.size === 0) return { hasActive: false, hasInactive: false };
+    
+    let hasActive = false;
+    let hasInactive = false;
+
+    for (const id of selectedKeys) {
+      const key = keys.find((k) => k.id === id);
+      if (key) {
+        if (key.isActive) hasActive = true;
+        else hasInactive = true;
+      }
+    }
+
+    return { hasActive, hasInactive };
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="pt-20 px-6 pb-12">
         <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between ">
+
           {/* Titre */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold uppercase tracking-tight">PASSWORD</h1>
           </div>
-
-          {/* Erreur */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
 
           {/* Bouton créer */}
           {!showForm && (
@@ -181,6 +258,14 @@ export default function ServiceKeysPage() {
               + CREATE
             </button>
           )}
+        </div>
+
+        {/* Erreur */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
           {/* Formulaire création */}
           {showForm && (
@@ -201,6 +286,22 @@ export default function ServiceKeysPage() {
                     placeholder="Enter password"
                     className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
                   />
+                </div>
+                <div>
+                  <label htmlFor="role" className="block text-xs font-medium mb-2 uppercase">
+                    Role
+                  </label>
+                  <select
+                    id="role"
+                    value={formData.role}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                  >
+                    <option value="SERVICE">Service</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
                 </div>
                 <div>
                   <label htmlFor="name" className="block text-xs font-medium mb-2 uppercase">
@@ -265,43 +366,86 @@ export default function ServiceKeysPage() {
               <p className="text-gray-600">No service keys yet.</p>
             </div>
           ) : (
-            <div className="border border-gray-300">
+            <div className="border border-black">
               {/* Header du tableau */}
-              <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b border-gray-300 text-xs uppercase font-medium text-gray-700">
-                <div className="col-span-1 text-center">
+              <div className="grid grid-cols-12 gap-4 p-4 border-b border-black text-xs uppercase font-medium text-black">
+                <div className="col-span-3 flex gap-2 w-fit text-center">
                   <input 
                     type="checkbox" 
-                    className="w-4 h-4 cursor-pointer"
+                    className="w-4 h-4 cursor-pointer rounded-none"
                     checked={selectedKeys.size === keys.length && keys.length > 0}
                     onChange={handleSelectAll}
                   />
+                <div className="">NAME</div>
                 </div>
-                <div className="col-span-3">NAME</div>
                 <div className="col-span-2">PASSWORD</div>
+                <div className="col-span-1">ROLE</div>
                 <div className="col-span-2">DATE</div>
                 <div className="col-span-2">STATE</div>
-                <div className="col-span-2 text-right">ACTIONS</div>
+                
+                {/* Boutons d'action */}
+                {selectedKeys.size > 0 && (() => {
+                  const { hasActive, hasInactive } = getSelectedKeysState();
+                  return (
+                    <div className="col-span-2 flex gap-1 justify-end">
+                      {hasInactive && (
+                        <button
+                          onClick={handleActivateSelected}
+                          className="text-xs font-medium hover:underline text-green-600"
+                          title={`Activate ${selectedKeys.size} key(s)`}
+                        >
+                          ACTIVATE
+                        </button>
+                      )}
+                      {hasActive && (
+                        <button
+                          onClick={handleDeactivateSelected}
+                          className="text-xs font-medium hover:underline text-yellow-600"
+                          title={`Deactivate ${selectedKeys.size} key(s)`}
+                        >
+                          DEACTIVATE
+                        </button>
+                      )}
+                      <button
+                        onClick={handleDeleteSelected}
+                        className="text-xs font-medium hover:underline text-red-600"
+                        title={`Delete ${selectedKeys.size} key(s)`}
+                      >
+                        DELETE
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Rows */}
               {keys.map((key) => (
-                <div key={key.id} className="grid grid-cols-12 gap-4 p-4 border-b border-gray-300 items-center text-sm">
-                  <div className="col-span-1 text-center">
+                <div key={key.id} className="grid grid-cols-12 gap-4 p-4 border-b border-black items-center text-sm">
+                  <div className="col-span-3 items-center gap-2 flex w-fit text-center">
                     <input 
                       type="checkbox" 
                       className="w-4 h-4 cursor-pointer"
                       checked={selectedKeys.has(key.id)}
                       onChange={() => handleSelectKey(key.id)}
                     />
+                  <div className="">{key.name || "UNNAMED"}</div>
                   </div>
-                  <div className="col-span-3 font-medium">{key.name || "UNNAMED"}</div>
                   <div className="col-span-2 font-mono text-xs">{key.password}</div>
+                  <div className="col-span-1">
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      key.role === "ADMIN" 
+                        ? "bg-purple-100 text-purple-700" 
+                        : "bg-blue-100 text-blue-700"
+                    }`}>
+                      {key.role || "SERVICE"}
+                    </span>
+                  </div>
                   <div className="col-span-2 text-xs">
                     {new Date(key.createdAt).toLocaleDateString("fr-FR")}
                   </div>
                   <div className="col-span-2">
                     <span
-                      className={`text-xs px-2 py-1 rounded font-medium ${
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${
                         key.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-200 text-gray-700"
