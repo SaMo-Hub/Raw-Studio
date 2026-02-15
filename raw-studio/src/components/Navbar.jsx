@@ -1,52 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import rawstudio from "../../public/logo/raw-studio.svg";
+import { usePathname } from "next/navigation";
+
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState(null);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const router = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    // Vérifier la session via API
-    const checkSession = async () => {
-      try {
-        const response = await fetch("/api/auth/session");
-        const data = await response.json();
-
-        if (data.isLoggedIn) {
-          setIsLoggedIn(true);
-          setRole(data.role);
-        } else {
-          setIsLoggedIn(false);
-          setRole(null);
-        }
-      } catch (error) {
-        console.error("Failed to check session:", error);
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setIsLoggedIn(false);
-    setRole(null);
-    setShowLogoutModal(false);
-    router.push("/");
-  };
+  // Hide navbar on admin pages
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
-    <nav className="fixed top-0 left-0 uppercase right-0 z-50 text-white mix-blend-difference ">
+    <nav className="fixed top-0 left-0 uppercase right-0 z-50 text-white mix-blend-difference">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-2xl  tracking-tight">
+        <Link href="/" className="text-2xl tracking-tight">
           <svg
             width="51"
             height="23"
@@ -66,91 +35,45 @@ export default function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             href="/projects"
-            className="text-xs medium hover:opacity-60 transition"
+            className="text-xs medium transition group relative overflow-hidden"
           >
-            Projects
+            <span className="relative block h-full overflow-hidden">
+              <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                Projects
+              </span>
+              <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                Projects
+              </span>
+            </span>
           </Link>
           <Link
             href="#about"
-            className="text-xs medium hover:opacity-60 transition"
+            className="text-xs medium transition group relative overflow-hidden"
           >
-            About
+            <span className="relative block h-full overflow-hidden">
+              <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                About
+              </span>
+              <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                About
+              </span>
+            </span>
           </Link>
-
-          {isLoggedIn ? (
-            <>
-              <Link
-                href="/admin"
-                className="text-xs medium hover:opacity-60 transition"
-              >
-                Admin
-              </Link>
-
-              <button
-                onClick={() => setShowLogoutModal(true)}
-                className="text-xs uppercase medium hover:opacity-60 transition"
-              >
-                Logout
-              </button>
-              {role === "ADMIN" && (
-                <Link
-                  href="/admin/service-keys"
-                  className="text-xs uppercase medium hover:opacity-60 transition"
-                >
-                  Password
-                </Link>
-              )}
-              {role === "ADMIN" && (
-                <Link
-                  href="/admin/projects/new"
-                  className="text-black bg-white px-2 py-1 text-xs uppercase medium hover:opacity-60 transition "
-                >
-                  Add Project
-                </Link>
-              )}
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="text-xs medium hover:opacity-60 transition"
-            >
-              Login
-            </Link>
-          )}
+          <Link
+            href="/login"
+            className="text-xs medium transition group relative overflow-hidden"
+          >
+            <span className="relative block h-full overflow-hidden">
+              <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                Login
+              </span>
+              <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                Login
+              </span>
+            </span>
+          </Link>
         </div>
       </div>
-
-      {/* Modal de confirmation */}
-      {showLogoutModal && (
-        <div
-          className="fixed inset-0 h-screen w-screen bg-black/50 flex items-center justify-center z-50"
-          onClick={() => setShowLogoutModal(false)}
-        >
-          <div
-            className="bg-white p-8 rounded-lg max-w-sm w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl bold mb-4">Confirm Logout</h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to disconnect?
-            </p>
-            <div className="flex gap-4">
-              <button
-                onClick={handleLogout}
-                className="flex-1 px-4 py-2 bg-red-600 text-white medium rounded hover:bg-red-700 transition"
-              >
-                Logout
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 medium rounded hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

@@ -12,7 +12,7 @@ export async function PUT(request, context) {
       where: { id },
     });
 
-    if (!key || key.role !== "SERVICE") {
+    if (!key || (key.role !== "SERVICE" && key.role !== "ADMIN")) {
       return NextResponse.json(
         { error: "Service key not found" },
         { status: 404 }
@@ -56,6 +56,7 @@ export async function PUT(request, context) {
         password: true,
         name: true,
         description: true,
+        role: true,
         isActive: true,
         createdAt: true,
         expiresAt: true,
@@ -81,7 +82,7 @@ export async function DELETE(request, context) {
       where: { id },
     });
 
-    if (!key || key.role !== "SERVICE") {
+    if (!key || (key.role !== "SERVICE" && key.role !== "ADMIN")) {
       return NextResponse.json(
         { error: "Service key not found" },
         { status: 404 }

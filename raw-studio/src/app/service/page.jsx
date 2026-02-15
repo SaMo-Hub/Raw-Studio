@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 export default function ServicePage() {
   const router = useRouter();
@@ -42,12 +43,13 @@ export default function ServicePage() {
           </Link>
           <div className="flex items-center gap-6">
             <span className="text-sm text-gray-600">Service Access</span>
-            <button
+            <Button
               onClick={handleLogout}
-              className="text-sm font-medium hover:opacity-60 transition"
+              variant="ghost"
+              size="sm"
             >
               Logout
-            </button>
+            </Button>
           </div>
         </div>
       </nav>

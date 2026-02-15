@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
@@ -344,19 +345,18 @@ export default function EditProjectPage() {
 
             {/* Boutons */}
             <div className="flex gap-4">
-              <button
+              <Button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-black text-white rounded hover:bg-gray-900 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Project"}
-              </button>
-              <Link
+              </Button>
+              <Button
                 href="/admin"
-                className="px-6 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
+                variant="secondary"
               >
                 Cancel
-              </Link>
+              </Button>
             </div>
           </form>
         </div>

@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Button from "@/components/Button";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import Checkbox from "@/components/Checkbox";
+import ServiceKeyEditModal from "@/components/ServiceKeyEditModal";
+import StatusTag from "@/components/StatusTag";
 
 export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
@@ -14,7 +19,25 @@ export default function ServiceKeysPage() {
   const [editPassword, setEditPassword] = useState("");
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editRole, setEditRole] = useState("SERVICE");
   const [selectedKeys, setSelectedKeys] = useState(new Set());
+  const [selectedRole, setSelectedRole] = useState("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [borderStyle, setBorderStyle] = useState({ left: 0, width: 0 });
+  const [sortBy, setSortBy] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+  const buttonRefs = useRef({ ALL: null, ADMIN: null, SERVICE: null });
+
+  // Mettre à jour la position du border animé
+  useEffect(() => {
+    const button = buttonRefs.current[selectedRole];
+    if (button) {
+      setBorderStyle({
+        left: button.offsetLeft,
+        width: button.offsetWidth,
+      });
+    }
+  }, [selectedRole]);
 
   // Charger les clés
   useEffect(() => {
@@ -71,10 +94,14 @@ export default function ServiceKeysPage() {
 
   const handleToggleActive = async (id, currentStatus) => {
     try {
+      const key = keys.find((k) => k.id === id);
       const response = await fetch(`/api/admin/service-keys/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !currentStatus }),
+        body: JSON.stringify({ 
+          isActive: !currentStatus,
+          role: key.role,
+        }),
       });
 
       if (response.ok) {
@@ -100,6 +127,7 @@ export default function ServiceKeysPage() {
           password: editPassword,
           name: editName,
           description: editDescription,
+          role: editRole,
         }),
       });
 
@@ -110,6 +138,7 @@ export default function ServiceKeysPage() {
         setEditPassword("");
         setEditName("");
         setEditDescription("");
+        setEditRole("SERVICE");
         // Recharger les données pour s'assurer que tout est à jour
         await fetchKeys();
       } else {
@@ -174,6 +203,26 @@ export default function ServiceKeysPage() {
     }
   };
 
+  const handleToggleSelectedKeys = async () => {
+    const keysToToggle = Array.from(selectedKeys);
+    try {
+      for (const id of keysToToggle) {
+        const key = keys.find((k) => k.id === id);
+        if (key) {
+          await fetch(`/api/admin/service-keys/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isActive: !key.isActive, role: key.role }),
+          });
+        }
+      }
+      await fetchKeys();
+      setSelectedKeys(new Set());
+    } catch (err) {
+      setError("Failed to toggle selected keys");
+    }
+  };
+
   const handleDeactivateSelected = async () => {
     if (selectedKeys.size === 0) return;
 
@@ -183,7 +232,7 @@ export default function ServiceKeysPage() {
         await fetch(`/api/admin/service-keys/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: false }),
+          body: JSON.stringify({ isActive: false, role: key.role }),
         });
       }
       setKeys(
@@ -206,7 +255,7 @@ export default function ServiceKeysPage() {
         await fetch(`/api/admin/service-keys/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: true }),
+          body: JSON.stringify({ isActive: true, role: key.role }),
         });
       }
       setKeys(
@@ -238,39 +287,162 @@ export default function ServiceKeysPage() {
     return { hasActive, hasInactive };
   };
 
+  // Gérer le tri
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  // Filtrer et trier les clés
+  const getFilteredKeys = () => {
+    let filtered = keys.filter((key) => {
+      const roleMatch = selectedRole === "ALL" || key.role === selectedRole;
+      const searchMatch = (key.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+      return roleMatch && searchMatch;
+    });
+
+    // Appliquer le tri
+    if (sortBy) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+
+        if (sortBy === "name") {
+          aValue = (a.name || "").toLowerCase();
+          bValue = (b.name || "").toLowerCase();
+        } else if (sortBy === "role") {
+          aValue = a.role || "";
+          bValue = b.role || "";
+        } else if (sortBy === "date") {
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+        } else if (sortBy === "state") {
+          aValue = a.isActive ? 1 : 0;
+          bValue = b.isActive ? 1 : 0;
+        }
+
+        if (sortOrder === "asc") {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredKeys = getFilteredKeys();
+  const getRoleCount = (role) => {
+    if (role === "ALL") return keys.length;
+    return keys.filter((k) => k.role === role).length;
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <div className="pt-20 px-6 pb-12">
-        <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between ">
+      <div className="p-6">
+        <div className=" mx-auto">
+        <div className="flex items-center justify-between mb-12">
 
           {/* Titre */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold uppercase tracking-tight">PASSWORD</h1>
+          <div>
+            <h1 className="text-4xl font-bold uppercase tracking-tight">Password</h1>
+            <p className="text-gray-600 text-sm mt-1">Manage service passwords</p>
           </div>
 
           {/* Bouton créer */}
           {!showForm && (
-            <button
+            <Button
               onClick={() => setShowForm(true)}
-              className="mb-8 px-4 py-2 bg-black text-white text-xs uppercase font-medium rounded hover:opacity-80 transition"
+              size="md"
             >
-              + CREATE
-            </button>
+              + Add a password
+            </Button>
           )}
+        </div>
+
+        {/* Filtres et Recherche */}
+        <div className=" mb-3">
+          <div className="relative mb-3">
+            <div className="flex gap-4">
+              {["ALL", "ADMIN", "SERVICE"].map((role) => (
+                <button
+                  key={role}
+                  ref={(el) => {
+                    if (el) buttonRefs.current[role] = el;
+                  }}
+                  onClick={() => {
+                    setSelectedRole(role);
+                    setSelectedKeys(new Set());
+                  }}
+                  className={`pb-2 transition relative  flex items-center overflow-hidden group ${
+                    selectedRole === role
+                      ? "text-black font-medium"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  <span className="relative inline-block overflow-hidden h-4">
+                    <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                      {role}
+                    </span>
+                    <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0">
+                      {role}
+                    </span>
+                  </span>
+                  <span className="ml-1 text-xs text-gray-500">({getRoleCount(role)})</span>
+                </button>
+              ))}
+            </div>
+            {/* Border animé */}
+            <div
+className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                left: `${borderStyle.left}px`,
+                width: `${borderStyle.width}px`,
+              }}
+            />
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative flex items-center justifycenter">
+            <svg
+              className="absolute left-2  w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search for passwords"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-fit px-4 pl-8 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
+            />
+            
+          </div>
         </div>
 
         {/* Erreur */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700  text-sm">
             {error}
           </div>
         )}
 
           {/* Formulaire création */}
           {showForm && (
-            <div className="mb-8 p-6 border border-gray-200 rounded">
-              <h2 className="text-lg font-bold mb-4 uppercase">NEW KEY</h2>
+            <div className="mb-8 p-6 border border-gray-200  bg-gray-50">
+              <h2 className="text-lg font-bold mb-4 uppercase">New key</h2>
               <form onSubmit={handleCreateKey} className="space-y-4">
                 <div>
                   <label htmlFor="password" className="block text-xs font-medium mb-2 uppercase">
@@ -334,29 +506,28 @@ export default function ServiceKeysPage() {
                   />
                 </div>
                 <div className="flex gap-4">
-                  <button
+                  <Button
                     type="submit"
                     disabled={creating}
-                    className="px-6 py-2 bg-black text-white text-xs uppercase font-medium rounded hover:opacity-80 transition disabled:opacity-50"
                   >
                     {creating ? "Creating..." : "Create"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => {
                       setShowForm(false);
-                      setFormData({ password: "", name: "", description: "" });
+                      setFormData({ password: "", name: "", description: "", role: "SERVICE" });
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded text-xs uppercase font-medium hover:bg-gray-50 transition"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
           )}
 
-          {/* Tableau */}
+          {/* Table */}
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-600">Loading...</p>
@@ -365,118 +536,134 @@ export default function ServiceKeysPage() {
             <div className="text-center py-12">
               <p className="text-gray-600">No service keys yet.</p>
             </div>
+          ) : filteredKeys.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No service keys match your filters.</p>
+            </div>
           ) : (
-            <div className="border border-black">
-              {/* Header du tableau */}
-              <div className="grid grid-cols-12 gap-4 p-4 border-b border-black text-xs uppercase font-medium text-black">
-                <div className="col-span-3 flex gap-2 w-fit text-center">
-                  <input 
-                    type="checkbox" 
-                    className="w-4 h-4 cursor-pointer rounded-none"
-                    checked={selectedKeys.size === keys.length && keys.length > 0}
-                    onChange={handleSelectAll}
-                  />
-                <div className="">NAME</div>
-                </div>
-                <div className="col-span-2">PASSWORD</div>
-                <div className="col-span-1">ROLE</div>
-                <div className="col-span-2">DATE</div>
-                <div className="col-span-2">STATE</div>
-                
-                {/* Boutons d'action */}
-                {selectedKeys.size > 0 && (() => {
-                  const { hasActive, hasInactive } = getSelectedKeysState();
-                  return (
-                    <div className="col-span-2 flex gap-1 justify-end">
-                      {hasInactive && (
-                        <button
-                          onClick={handleActivateSelected}
-                          className="text-xs font-medium hover:underline text-green-600"
-                          title={`Activate ${selectedKeys.size} key(s)`}
-                        >
-                          ACTIVATE
-                        </button>
-                      )}
-                      {hasActive && (
-                        <button
-                          onClick={handleDeactivateSelected}
-                          className="text-xs font-medium hover:underline text-yellow-600"
-                          title={`Deactivate ${selectedKeys.size} key(s)`}
-                        >
-                          DEACTIVATE
-                        </button>
-                      )}
+            <div className="text-sm">
+              {/* Table Header */}
+              {filteredKeys.length > 0 && (
+                <div className="mb-4 grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                     {/* <input 
+                      ref={(el) => {
+                        if (el) {
+                          el.indeterminate = selectedKeys.size > 0 && selectedKeys.size < filteredKeys.length;
+                        }
+                      }}
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer rounded-none"
+                      checked={selectedKeys.size === filteredKeys.length && filteredKeys.length > 0}
+                      onChange={() => {
+                        if (selectedKeys.size === filteredKeys.length) {
+                          setSelectedKeys(new Set());
+                        } else {
+                          setSelectedKeys(new Set(filteredKeys.map((k) => k.id)));
+                        }
+                      }}
+                    /> */}
+                    <Checkbox
+                      checked={selectedKeys.size === filteredKeys.length && filteredKeys.length > 0}
+                      indeterminate={selectedKeys.size > 0 && selectedKeys.size < filteredKeys.length}
+                      onChange={() => {
+                        if (selectedKeys.size === filteredKeys.length) {
+                          setSelectedKeys(new Set());
+                        } else {
+                          setSelectedKeys(new Set(filteredKeys.map((k) => k.id)));
+                        }
+                      }}
+                    />
+                    <span>Name</span>
+                  </div>
+                  <div>Password</div>
+                  <div>Role</div>
+                  <div>Date</div>
+                  <div>State</div>
+                  {selectedKeys.size > 0 ? (
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={handleToggleSelectedKeys}
+                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
+                      >
+                        Toggle ({selectedKeys.size})
+                      </button>
                       <button
                         onClick={handleDeleteSelected}
-                        className="text-xs font-medium hover:underline text-red-600"
-                        title={`Delete ${selectedKeys.size} key(s)`}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
                       >
-                        DELETE
+                        Delete ({selectedKeys.size})
                       </button>
                     </div>
-                  );
-                })()}
-              </div>
+                  ) : (
+                    <div className="text-right">Actions</div>
+                  )}
+                </div>
+              )}
 
               {/* Rows */}
-              {keys.map((key) => (
-                <div key={key.id} className="grid grid-cols-12 gap-4 p-4 border-b border-black items-center text-sm">
-                  <div className="col-span-3 items-center gap-2 flex w-fit text-center">
-                    <input 
+              {filteredKeys.map((key) => (
+                <div
+                  key={key.id}
+                  className={`grid grid-cols-6 gap-4 items-center p-4 border-b border-gray-200 transition ${
+                    selectedKeys.has(key.id) ? "bg-gray-100 -50" : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {/* <input 
                       type="checkbox" 
                       className="w-4 h-4 cursor-pointer"
                       checked={selectedKeys.has(key.id)}
                       onChange={() => handleSelectKey(key.id)}
+                    /> */}
+                     <Checkbox
+                      checked={selectedKeys.has(key.id)}
+                      onChange={() => handleSelectKey(key.id)}
                     />
-                  <div className="">{key.name || "UNNAMED"}</div>
+                    <span className="font-medium text-xs">{key.name || "UNNAMED"}</span>
                   </div>
-                  <div className="col-span-2 font-mono text-xs">{key.password}</div>
-                  <div className="col-span-1">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      key.role === "ADMIN" 
-                        ? "bg-purple-100 text-purple-700" 
-                        : "bg-blue-100 text-blue-700"
-                    }`}>
+                  <div className=" text-xs text-gray-600">{key.password}</div>
+                  <div>
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-medium ${
+                        key.role === "ADMIN"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
                       {key.role || "SERVICE"}
                     </span>
                   </div>
-                  <div className="col-span-2 text-xs">
+                  <div className="text-xs text-gray-600">
                     {new Date(key.createdAt).toLocaleDateString("fr-FR")}
                   </div>
-                  <div className="col-span-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        key.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {key.isActive ? "ACTIVE" : "DESACTIVE"}
-                    </span>
+                  <div>
+                    <StatusTag isActive={key.isActive} />
                   </div>
-                  <div className="col-span-2 flex gap-2 justify-end">
-                    <button
-                      onClick={() => handleToggleActive(key.id, key.isActive)}
-                      className="text-xs font-medium hover:underline"
-                    >
-                      {key.isActive ? "DESACTIVER" : "ACTIVER"}
-                    </button>
+                  <div className="flex items-center justify-end gap-4">
+                    <ToggleSwitch
+                      isActive={key.isActive}
+                      onChange={(newStatus) => handleToggleActive(key.id, !newStatus)}
+                    />
                     <button
                       onClick={() => {
                         setEditingId(key.id);
                         setEditPassword(key.password);
                         setEditName(key.name || "");
                         setEditDescription(key.description || "");
+                        setEditRole(key.role || "SERVICE");
                       }}
-                      className="text-xs font-medium hover:underline text-blue-600"
+                      className="text-gray-600 hover:text-black transition text-sm"
+                      title="Edit"
                     >
-                      EDIT
+                      ✎
                     </button>
                     <button
                       onClick={() => handleDeleteKey(key.id)}
-                      className="text-xs font-medium hover:underline text-red-600"
+                      className="text-gray-600 hover:text-red-600 transition text-sm"
+                      title="Delete"
                     >
-                      DELETE
+                      🗑
                     </button>
                   </div>
                 </div>
@@ -485,86 +672,26 @@ export default function ServiceKeysPage() {
           )}
 
           {/* Modal édition */}
-          {editingId && (
-            <div 
-              className="fixed inset-0 bg-black/50 flex items-center justify-end z-50"
-              onClick={() => {
-                setEditingId(null);
-                setEditPassword("");
-                setEditName("");
-                setEditDescription("");
-              }}
-            >
-              <div 
-                className="bg-white p-8 w-full max-w-md h-full overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-xl font-bold mb-6 uppercase">PASSWORD</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium mb-2 uppercase">Name</label>
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-2 uppercase">Password</label>
-                    <input
-                      type="text"
-                      value={editPassword}
-                      onChange={(e) => setEditPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-2 uppercase">Password</label>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          const currentKey = keys.find(k => k.id === editingId);
-                          handleToggleActive(editingId, currentKey?.isActive);
-                        }}
-                        className="flex-1 px-3 py-2 bg-black text-white text-xs font-medium rounded hover:opacity-80"
-                      >
-                        ACTIVATE
-                      </button>
-                      <button
-                        onClick={() => {
-                          const currentKey = keys.find(k => k.id === editingId);
-                          handleToggleActive(editingId, currentKey?.isActive);
-                        }}
-                        className="flex-1 px-3 py-2 border border-gray-300 text-xs font-medium rounded hover:bg-gray-50"
-                      >
-                        DESACTIVATE
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-6">
-                    <button
-                      onClick={() => handleUpdatePassword(editingId)}
-                      className="flex-1 px-4 py-2 bg-black text-white text-xs uppercase font-medium rounded hover:opacity-80"
-                    >
-                      SAVE
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditPassword("");
-                        setEditName("");
-                        setEditDescription("");
-                      }}
-                      className="flex-1 px-4 py-2 border border-gray-300 text-xs uppercase font-medium rounded hover:bg-gray-50"
-                    >
-                      CANCEL
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <ServiceKeyEditModal
+            isOpen={!!editingId}
+            onClose={() => {
+              setEditingId(null);
+              setEditPassword("");
+              setEditName("");
+              setEditDescription("");
+              setEditRole("SERVICE");
+            }}
+            onSave={handleUpdatePassword}
+            keyId={editingId}
+            name={editName}
+            password={editPassword}
+            description={editDescription}
+            role={editRole}
+            onNameChange={setEditName}
+            onPasswordChange={setEditPassword}
+            onDescriptionChange={setEditDescription}
+            onRoleChange={setEditRole}
+          />
         </div>
       </div>
     </div>

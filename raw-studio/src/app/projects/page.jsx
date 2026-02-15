@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Button from "@/components/Button";
+import Navbar from "@/components/Navbar";
 
 const CATEGORIES = ["ALL", "COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
@@ -146,23 +148,22 @@ export default function ProjectsPage() {
 
   return (
     <div className=" bg-white pt-24">
+          <Navbar />
+
       <div className="">
         {/* Sidebar Left - Categories */}
         <div className="flex px-12 justify-between">
           <div className="gap-4 flex">
             {CATEGORIES.map((category) => (
-              <button
+              <Button
                 key={category}
                 onClick={() => filterProjects(category)}
-                className={` text-left  transition-colors flex justify-between items-center ${
-                  selectedCategory === category
-                    ? "semibold text-black"
-                    : "normal text-gray-500 hover:text-gray-900"
-                }`}
+                variant={selectedCategory === category ? "primary" : "ghost"}
+                size="sm"
               >
                 <span>{category}</span>
-                <span className=""> ({getCategoryCount(category)})</span>
-              </button>
+                <span className="ml-1"> ({getCategoryCount(category)})</span>
+              </Button>
             ))}
           </div>
 
@@ -170,18 +171,16 @@ export default function ProjectsPage() {
 
           <div className="gap-2 flex">
             {VIEW_MODES.map((mode) => (
-              <button
+              <Button
                 key={mode.id}
                 onClick={() => setViewMode(mode.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2  text-sm transition-colors ${
-                  viewMode === mode.id
-                    ? "bg-black text-white"
-                    : "border border-gray-200 text-gray-700 hover:border-gray-400"
-                }`}
+                variant={viewMode === mode.id ? "primary" : "secondary"}
+                size="sm"
+                className="flex items-center gap-2"
                 title={mode.label}
               >
                 {mode.icon}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -239,7 +238,7 @@ export default function ProjectsPage() {
                           <img
                             src={getProjectImage(project)}
                             alt={project.title}
-                            className="h-[75vh] w-[400px] object-cover group-hover:scale-105 transition duration-300"
+                            className="h-[73vh] w-96 object-cover group-hover:scale-105 transition duration-300"
                           />
                           <h3 className="mt-2 ml-1 text-black transition">
                             {project.title}
@@ -252,14 +251,14 @@ export default function ProjectsPage() {
 
                 {/* List View */}
                 {viewMode === "list" && (
-  <div className=" w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 absolute uppercase px-12">
+  <div className="w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
                     {/* Image centrale fixe */}
     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140  overflow-hidden pointer-events-none z-10">
                       {filteredProjects.map((project, index) => (
                         <img
                           key={project.id}
                           id={`project-image-${index}`}
-                          className="absolute w-full h-full bg-white object-cover  "
+                          className="absolute w-full h-full bg-white object-cover opacity-0 -opacity -300"
                           src={getProjectImage(project)}
                           alt={project.title}
                         />
@@ -299,7 +298,7 @@ export default function ProjectsPage() {
                             {index}
                             {"]"}
                           </h3>
-                          <div className=" bg-white -500 mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 transition origin-left  absolute w-3/5 h-full top-0"></div>
+                          <div className=" bg-white -500 mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 duration-300 ease-in-out transition origin-left  absolute w-3/5 h-full top-0"></div>
                         </div>
 
                         <h3 className="relative w-2/5">{project.title}</h3>
@@ -312,7 +311,7 @@ export default function ProjectsPage() {
                               ? new Date(project.projectDate).getFullYear()
                               : "N/A"}
                           </h3>
-                          <div className=" right-0 scale-x-0 group-hover:scale-x-100 transition origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0"></div>
+                          <div className=" right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0"></div>
                         </div>
                       </Link>
                     ))}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
@@ -202,13 +203,15 @@ export default function NewProjectPage() {
                           alt={`Project image ${index + 1}`}
                           className="w-full h-40 object-cover rounded border border-gray-200"
                         />
-                        <button
+                        <Button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
+                          variant="danger"
+                          size="sm"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
                         >
                           Remove
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -264,19 +267,18 @@ export default function NewProjectPage() {
 
             {/* Boutons */}
             <div className="flex gap-4">
-              <button
+              <Button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-black text-white rounded hover:bg-gray-900 disabled:opacity-50"
               >
                 {loading ? "Creating..." : "Create Project"}
-              </button>
-              <Link
+              </Button>
+              <Button
                 href="/admin"
-                className="px-6 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
+                variant="secondary"
               >
                 Cancel
-              </Link>
+              </Button>
             </div>
           </form>
         </div>

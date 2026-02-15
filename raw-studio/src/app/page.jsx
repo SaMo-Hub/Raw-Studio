@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -58,14 +59,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
 
-{/* <div className="w-full  flex">
-  <div className="bg-yellow-800 w-full h-screen ">
-  </div>
-  <div className="bg-blue-800 w-full h-screen ">
-  </div>
-</div> */}
-      {/* Hero Section */}
-   
+          <Navbar />
+
 
       {/* Galerie Dynamique */}
       <section className="">

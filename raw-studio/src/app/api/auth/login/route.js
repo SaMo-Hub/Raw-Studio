@@ -39,6 +39,7 @@ export async function POST(request) {
     const token = await createToken({
       id: validKey.id,
       role: validKey.role,
+      name: validKey.name,
     });
 
     // Définir le cookie

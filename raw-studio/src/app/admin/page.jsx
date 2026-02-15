@@ -1,15 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import Button from "@/components/Button";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import Checkbox from "@/components/Checkbox";
+import StatusTag from "@/components/StatusTag";
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProjects, setSelectedProjects] = useState(new Set());
+  const [sortBy, setSortBy] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const router = useRouter();
+
+  // Gérer le tri
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  // Appliquer le tri
+  const getSortedProjects = () => {
+    if (!sortBy) return projects;
+
+    const sorted = [...projects];
+    sorted.sort((a, b) => {
+      let aValue, bValue;
+
+      if (sortBy === "name") {
+        aValue = (a.title || "").toLowerCase();
+        bValue = (b.title || "").toLowerCase();
+      } else if (sortBy === "type") {
+        aValue = (a.technologies || "").toLowerCase();
+        bValue = (b.technologies || "").toLowerCase();
+      } else if (sortBy === "client") {
+        aValue = (a.client || "").toLowerCase();
+        bValue = (b.client || "").toLowerCase();
+      } else if (sortBy === "date") {
+        aValue = a.projectDate ? new Date(a.projectDate).getTime() : 0;
+        bValue = b.projectDate ? new Date(b.projectDate).getTime() : 0;
+      } else if (sortBy === "state") {
+        aValue = a.isActive ? 1 : 0;
+        bValue = b.isActive ? 1 : 0;
+      }
+
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return sorted;
+  };
 
   useEffect(() => {
     fetchProjects();
@@ -51,6 +102,11 @@ export default function AdminDashboard() {
         const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
         if (response.ok) {
           setProjects(projects.filter((p) => p.id !== id));
+          setSelectedProjects((prev) => {
+            const newSelected = new Set(prev);
+            newSelected.delete(id);
+            return newSelected;
+          });
         }
       } catch (error) {
         console.error("Delete failed:", error);
@@ -58,26 +114,154 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSelectProject = (id) => {
+    setSelectedProjects((prev) => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      return newSelected;
+    });
+  };
+
+  const handleToggleSelectedProjects = async () => {
+    const projectsToToggle = Array.from(selectedProjects);
+    let updatedProjects = [...projects];
+    
+    for (const id of projectsToToggle) {
+      const project = updatedProjects.find((p) => p.id === id);
+      if (project) {
+        try {
+          const response = await fetch(`/api/projects/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isActive: !project.isActive }),
+          });
+          if (response.ok) {
+            const updated = await response.json();
+            updatedProjects = updatedProjects.map((p) => (p.id === id ? updated : p));
+          }
+        } catch (error) {
+          console.error("Toggle failed:", error);
+        }
+      }
+    }
+    
+    setProjects(updatedProjects);
+    setSelectedProjects(new Set());
+  };
+
+  const handleDeleteSelectedProjects = async () => {
+    if (!confirm(`Delete ${selectedProjects.size} selected project(s)?`)) return;
+    const projectsToDelete = Array.from(selectedProjects);
+    for (const id of projectsToDelete) {
+      try {
+        const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+        if (response.ok) {
+          setProjects(projects.filter((p) => p.id !== id));
+        }
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    }
+    setSelectedProjects(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-     
-
-      <div className="pt-20 px-6 pb-12">
-        <div className="max-w-6xl mx-auto">
+      <div className="p-6">
+        <div className=" mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-              <p className="text-gray-600">Manage your portfolio projects</p>
+              <h1 className="text-4xl font-bold  uppercase">Project</h1>
+              <p className="text-gray-600 text-sm">View your projects</p>
             </div>
-            <Link
+            <Button
               href="/admin/projects/new"
-              className="px-6 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-900 transition"
+              size="md"
             >
-              + New Project
-            </Link>
+              + Add a project
+            </Button>
+           
           </div>
+
+          {/* Table Header */}
+          {!loading && projects.length > 0 && (
+            <div className="mb- grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50  text-xs uppercase font-medium text-black/30 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedProjects.size === getSortedProjects().length && getSortedProjects().length > 0}
+                  indeterminate={selectedProjects.size > 0 && selectedProjects.size < getSortedProjects().length}
+                  onChange={() => {
+                    if (selectedProjects.size === getSortedProjects().length) {
+                      setSelectedProjects(new Set());
+                    } else {
+                      setSelectedProjects(new Set(getSortedProjects().map((p) => p.id)));
+                    }
+                  }}
+                />
+                <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-black transition">
+                  Name
+                  {sortBy === "name" && (
+                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+              <div>
+                <button onClick={() => handleSort("type")} className="flex items-center gap-1 hover:text-black transition">
+                  Type
+                  {sortBy === "type" && (
+                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+              <div>
+                <button onClick={() => handleSort("client")} className="flex items-center gap-1 hover:text-black transition">
+                  Client
+                  {sortBy === "client" && (
+                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+              <div>
+                <button onClick={() => handleSort("date")} className="flex items-center gap-1 hover:text-black transition">
+                  Date
+                  {sortBy === "date" && (
+                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+              <div>
+                <button onClick={() => handleSort("state")} className="flex items-center gap-1 hover:text-black transition">
+                  State
+                  {sortBy === "state" && (
+                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+              {selectedProjects.size > 0 ? (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={handleToggleSelectedProjects}
+                    className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
+                  >
+                    Toggle ({selectedProjects.size})
+                  </button>
+                  <button
+                    onClick={handleDeleteSelectedProjects}
+                    className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                  >
+                    Delete ({selectedProjects.size})
+                  </button>
+                </div>
+              ) : (
+                <div className="text-right">Actions</div>
+              )}
+            </div>
+          )}
 
           {/* Projects List */}
           {loading ? (
@@ -93,71 +277,86 @@ export default function AdminDashboard() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {projects.map((project) => (
+            <div className="text-sm -lg overflow-hidden">
+              {getSortedProjects().map((project, index) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                  className={`grid grid-cols-6 gap-4 items-center p-4 
+                    border-b border-gray-200 transition ${
+                    selectedProjects.has(project.id) ? "bg-gray-100" : "hover:bg-gray-50"
+                  }`}
                 >
-                  {(() => {
-                    try {
-                      const images = typeof project.images === "string" ? JSON.parse(project.images) : project.images;
-                      const firstImage = Array.isArray(images) ? images[0] : images;
-                      return firstImage ? (
-                        <Image
-                          src={firstImage}
-                          alt={project.title}
-                          width={80}
-                          height={80}
-                          className="rounded-lg object-cover"
-                        />
-                      ) : null;
-                    } catch (e) {
-                      return null;
-                    }
-                  })()}
-             
+                  {/* Image & Name */}
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedProjects.has(project.id)}
+                      onChange={() => handleSelectProject(project.id)}
+                    />
+                    {(() => {
+                      try {
+                        const images =
+                          typeof project.images === "string"
+                            ? JSON.parse(project.images)
+                            : project.images;
+                        const firstImage = Array.isArray(images)
+                          ? images[0]
+                          : images;
+                        return firstImage ? (
+                          <div className="relative w-10 h-10 shrink-0">
+                            <Image
+                              src={firstImage}
+                              alt={project.title}
+                              fill
+                              className=" object-cover"
+                            />
+                          </div>
+                        ) : null;
+                      } catch (e) {
+                        return null;
+                      }
+                    })()}
+                    <span className="font-medium text-sm truncate">{project.title}</span>
+                  </div>
+
+                  {/* Type */}
                   <div>
-                    <h3 className="font-medium text-lg">{project.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{project.shortDesc}</p>
-                    <span
-                      className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
-                        project.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {project.isActive ? "Active" : "Inactive"}
+                    <span className="inline-block uppercase text-xs px-3 py-1 bg-black text-white rounded-full font-medium">
+                      {project.technologies ? JSON.parse(project.technologies)[0] : "—"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Link
-                      href={`/projects/${project.slug}`}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View
-                    </Link>
+
+                  {/* Client */}
+                  <div className="text-sm text-gray600">{project.client || "—"}</div>
+
+                  {/* Date */}
+                  <div className="text-sm text-gray600">
+                    {new Date(project.createdAt).toLocaleDateString("fr-FR")}
+                  </div>
+
+                  {/* State */}
+                  <div>
+                    <StatusTag isActive={project.isActive} />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-4">
+                    <ToggleSwitch
+                      isActive={project.isActive}
+                      onChange={(newStatus) => handleToggleActive(project.id, !newStatus)}
+                    />
                     <Link
                       href={`/admin/projects/${project.id}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-gray-600 hover:text-black transition"
+                      title="Edit"
                     >
-                      Edit
+                      ✎
                     </Link>
                     <button
-                      onClick={() => handleToggleActive(project.id, project.isActive)}
-                      className={`text-sm ${
-                        project.isActive
-                          ? "text-yellow-600 hover:underline"
-                          : "text-green-600 hover:underline"
-                      }`}
-                    >
-                      {project.isActive ? "Deactivate" : "Activate"}
-                    </button>
-                    <button
                       onClick={() => handleDelete(project.id)}
-                      className="text-sm text-red-600 hover:underline"
+                      className="text-gray-600 hover:text-red-600 transition"
+                      title="Delete"
                     >
-                      Delete
+                      🗑
                     </button>
                   </div>
                 </div>

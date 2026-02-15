@@ -6,11 +6,33 @@
 }
 
 /* Enlever les border-radius des inputs */
-input,
-select,
-textarea,
-button {
-  border-radius: 0 !important;
+input[type="checkbox"] {
+  border-radius: 0;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #000;
+  border-radius: 0; /* carré */
+  cursor: pointer;
+}
+
+/* Status Tag animation */
+@keyframes statusPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @theme {

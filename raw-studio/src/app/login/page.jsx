@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -64,13 +65,13 @@ export default function LoginPage() {
 
         
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-fit  py-2 px-3 bg-white text-black  font-medium  hover:bg-gray-900 disabled:opacity-50 transition"
+            variant="secondary"
           >
             {loading ? "Signing in..." : "Login"}
-          </button>
+          </Button>
           
         </form>
   {error && (
