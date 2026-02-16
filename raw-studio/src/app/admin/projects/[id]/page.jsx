@@ -22,7 +22,6 @@ export default function EditProjectPage() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        // Debug: log l'ID
         console.log("Fetching project with ID:", id);
         
         if (!id) {
@@ -33,6 +32,7 @@ export default function EditProjectPage() {
         
         const response = await fetch(`/api/projects/${id}`, {
           cache: "no-store",
+          priority: "high",
         });
         
         console.log("API response status:", response.status);
@@ -168,8 +168,34 @@ export default function EditProjectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="min-h-screen bg-white">
+        <div className="pt-20 px-6 pb-12">
+          <div className="max-w-2xl mx-auto space-y-8">
+            {/* Header skeleton */}
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-32"></div>
+
+            {/* Title skeleton */}
+            <div className="h-12 bg-gray-200 rounded animate-pulse w-48"></div>
+
+            {/* Form fields skeleton */}
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i}>
+                <div className="h-5 bg-gray-200 rounded animate-pulse w-24 mb-3"></div>
+                <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
+              </div>
+            ))}
+
+            {/* Images skeleton */}
+            <div>
+              <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-3"></div>
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-32 bg-gray-100 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

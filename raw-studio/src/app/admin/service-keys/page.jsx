@@ -541,7 +541,9 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
               <p className="text-gray-600">No service keys match your filters.</p>
             </div>
           ) : (
-            <div className="text-sm">
+            <div className=" ">
+      
+            <div className="text-sm ">
               {/* Table Header */}
               {filteredKeys.length > 0 && (
                 <div className="mb-4 grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
@@ -656,18 +658,44 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                       className="text-gray-600 hover:text-black transition text-sm"
                       title="Edit"
                     >
-                      ✎
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13 6.15723L17.1688 1.83398L22 6.66654L8.5 20.1665L2 22.1665L3.66885 15.834L13 6.15723ZM13 6.15723L17.8312 10.9898"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </button>
                     <button
                       onClick={() => handleDeleteKey(key.id)}
                       className="text-gray-600 hover:text-red-600 transition text-sm"
                       title="Delete"
                     >
-                      🗑
+                     <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19 8.25V22.25H5V8.25M16.5 5.75H22M16.5 5.75L14.4375 1.75H8.875L7.5 5.75M16.5 5.75H7.5M2 5.75H7.5M10 9.75V18.75M14 9.75V18.75"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </div>
               ))}
+            </div>
+                    
             </div>
           )}
 

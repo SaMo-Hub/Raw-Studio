@@ -35,6 +35,63 @@ input[type="checkbox"] {
   }
 }
 
+/* Checkbox animations */
+@keyframes checkboxBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 20;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dasharray: 20;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes dashDraw {
+  0% {
+    stroke-dasharray: 10;
+    stroke-dashoffset: 10;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dasharray: 10;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.checkbox-animated {
+  animation: checkboxBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkmark-animated {
+  animation: checkmarkDraw 0.5s ease-in-out;
+}
+
+.dash-animated {
+  animation: dashDraw 0.4s ease-in-out;
+}
+
 @theme {
   --font-neue: "Oldschool-Grotesk"; 
   --font-secondary: "Eighties", serif; 

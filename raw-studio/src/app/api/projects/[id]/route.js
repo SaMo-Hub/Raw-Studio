@@ -21,7 +21,9 @@ export async function GET(request, context) {
       return Response.json({ error: "Project not found" }, { status: 404 });
     }
 
-    return Response.json(project);
+    const response = Response.json(project);
+    response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    return response;
   } catch (error) {
     console.error("Get project error:", error);
     return Response.json({ 

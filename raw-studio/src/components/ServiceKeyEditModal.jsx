@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/Button";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 export default function ServiceKeyEditModal({
   isOpen,
@@ -16,15 +18,65 @@ export default function ServiceKeyEditModal({
   onDescriptionChange,
   onRoleChange,
 }) {
+  const overlayRef = useRef(null);
+  const contentRef = useRef(null);
+useEffect(() => {
+  if (isOpen) {
+    gsap.set([overlayRef.current, ], { opacity: 0 });
+    gsap.set(contentRef.current, { x: "100%" });
+
+    gsap.to(overlayRef.current, {
+      opacity: 1,
+      duration: 0.45,
+      ease: "power3.out",
+    });
+
+    gsap.to(contentRef.current, {
+      x: "0%",
+      opacity: 1,
+      duration: 0.85,
+      ease: "expo.out",
+    });
+  }
+}, [isOpen]);
+
+
+const handleClose = async () => {
+  const timeline = gsap.timeline();
+  
+  timeline.to(contentRef.current, {
+    x: "100%",
+    duration: 0.45,
+    ease: "expo.inOut",
+  }, 0);
+
+  timeline.to(overlayRef.current, {
+    opacity: 0,
+    duration: 0.45,
+    ease: "power2.inOut",
+  }, 0);
+
+  await timeline;
+
+  onClose();
+};
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex p-4 items-center justify-end z-50"
-      onClick={onClose}
+     
+      className="fixed inset-0 flex p-4  items-center justify-end z-50"
+      onClick={handleClose}
     >
       <div
-        className="bg-white p-8 w-full max-w-md flex flex-col justify-between h-full overflow-y-auto"
+      
+ ref={overlayRef}      className="top-0 left-0 bg-black/50 w-full h-full absolute z-0">
+
+      </div>
+      <div
+        ref={contentRef}
+className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col justify-between h-full overflow-y-auto will-change-transform"
         onClick={(e) => e.stopPropagation()}
       >
         <div className=" h-full">
