@@ -456,7 +456,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                       setFormData({ ...formData, password: e.target.value })
                     }
                     placeholder="Enter password"
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
                 <div>
@@ -469,7 +469,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   >
                     <option value="SERVICE">Service</option>
                     <option value="ADMIN">Admin</option>
@@ -487,7 +487,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
                 <div>
@@ -502,7 +502,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                       setFormData({ ...formData, description: e.target.value })
                     }
                     placeholder="Description"
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
                 <div className="flex gap-4">
@@ -555,7 +555,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                         }
                       }}
                       type="checkbox" 
-                      className="w-4 h-4 cursor-pointer rounded-none"
+                      className="w-4 h-4 cursor-pointer -none"
                       checked={selectedKeys.size === filteredKeys.length && filteredKeys.length > 0}
                       onChange={() => {
                         if (selectedKeys.size === filteredKeys.length) {
@@ -586,13 +586,13 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={handleToggleSelectedKeys}
-                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition"
+                        className="px-3 py-1 bg-green-500 text-white text-xs  hover:bg-green-600 transition"
                       >
                         Toggle ({selectedKeys.size})
                       </button>
                       <button
                         onClick={handleDeleteSelected}
-                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                        className="px-3 py-1 bg-red-500 text-white text-xs  hover:bg-red-600 transition"
                       >
                         Delete ({selectedKeys.size})
                       </button>
@@ -627,7 +627,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                   <div className=" text-xs text-gray-600">{key.password}</div>
                   <div>
                     <span
-                      className={`text-xs px-3 py-1 rounded-full font-medium ${
+                      className={`text-xs px-3 py-1 -full font-medium ${
                         key.role === "ADMIN"
                           ? "bg-purple-100 text-purple-700"
                           : "bg-blue-100 text-blue-700"

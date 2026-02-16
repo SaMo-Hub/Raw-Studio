@@ -6,7 +6,7 @@ export default function ToggleSwitch({ isActive, onChange, disabled = false }) {
       className={`group relative inline-flex h-5.5 w-10.5 items-center rounded-full bg-gray-300 transition-all duration-300 ease-out active:scale-90 overflow-hidden ${
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       }`}
-      title={isActive ? "Deactivate" : "Activate"}
+      title={isActive ? "Desactivate" : "Activate"}
     >
       {/* Fond noir qui slide de la droite */}
       <span
