@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import LenisWrapper from "@/components/LenisWrapper";
 import Navbar from "@/components/Navbar";
+import { TransitionProvider } from "@/context/TransitionContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,9 +22,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} font-neue font-medium text-xs antialiased bg-white text-gray-900`} suppressHydrationWarning>
-        <LenisWrapper>
-          {children}
-        </LenisWrapper>
+        <TransitionProvider>
+          <LenisWrapper>
+            {children}
+          </LenisWrapper>
+        </TransitionProvider>
       </body>
     </html>
   );

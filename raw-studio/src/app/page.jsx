@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import { Transition } from "@/components/Transition";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -137,6 +138,7 @@ export default function Home() {
     
 
       {/* Footer */}
+             <Transition primaryColor="#000000" secondaryColor="#ffffff" />
     
     </div>
   );

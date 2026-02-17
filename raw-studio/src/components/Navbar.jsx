@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { TransitionLink } from "./TransitionLink";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -15,7 +16,7 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 uppercase right-0 z-50 text-white mix-blend-difference">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="text-2xl tracking-tight">
+        <TransitionLink href="/" className="text-2xl tracking-tight">
           <svg
             width="51"
             height="23"
@@ -28,12 +29,10 @@ export default function Navbar() {
               fill="white"
             />
             <path d="M51 18.864H46.7568V23H51V18.864Z" fill="white" />
-          </svg>
-        </Link>
-
-        {/* Menu */}
+            </svg>
+        </TransitionLink>        {/* Menu */}
         <div className="flex items-center gap-8">
-          <Link
+          <TransitionLink
             href="/projects"
             className="text-xs medium transition group relative overflow-hidden"
           >
@@ -45,7 +44,7 @@ export default function Navbar() {
                 Projects
               </span>
             </span>
-          </Link>
+          </TransitionLink>
           <Link
             href="#about"
             className="text-xs medium transition group relative overflow-hidden"
@@ -59,7 +58,7 @@ export default function Navbar() {
               </span>
             </span>
           </Link>
-          <Link
+          <TransitionLink
             href="/login"
             className="text-xs medium transition group relative overflow-hidden"
           >
@@ -71,7 +70,7 @@ export default function Navbar() {
                 Login
               </span>
             </span>
-          </Link>
+          </TransitionLink>
         </div>
       </div>
     </nav>

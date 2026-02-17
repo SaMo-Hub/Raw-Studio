@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
+import { Transition } from "@/components/Transition";
+import { TransitionLink } from "@/components/TransitionLink";
 
 const CATEGORIES = ["ALL", "COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
@@ -204,7 +206,7 @@ export default function ProjectsPage() {
                 {viewMode === "grid" && (
                   <div className="uppercase grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
                     {filteredProjects.map((project) => (
-                      <Link
+                      <TransitionLink
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group cursor-pointer"
@@ -220,7 +222,7 @@ export default function ProjectsPage() {
                           {project.title}
                         </h3>
                       
-                      </Link>
+                      </TransitionLink>
                     ))}
                   </div>
                 )}
@@ -229,7 +231,7 @@ export default function ProjectsPage() {
                 {viewMode === "horizontal" && (
                   <div ref={horizontalScrollRef} className="uppercase flex w-screen overflow-hidden">
                     {filteredProjects.map((project) => (
-                      <Link
+                      <TransitionLink
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group h-full cursor-pointer flex flex-col shrink-0"
@@ -244,7 +246,7 @@ export default function ProjectsPage() {
                             {project.title}
                           </h3>
                         </div>
-                      </Link>
+                      </TransitionLink>
                     ))}
                   </div>
                 )}
@@ -266,7 +268,7 @@ export default function ProjectsPage() {
                     </div>
 
                     {filteredProjects.map((project, index) => (
-                      <Link
+                      <TransitionLink
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group uppercase semibold  text-sm bg-white py-6 cursor-pointer flex gap-24 items-center  "
@@ -313,7 +315,7 @@ export default function ProjectsPage() {
                           </h3>
                           <div className=" right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0"></div>
                         </div>
-                      </Link>
+                      </TransitionLink>
                     ))}
                   </div>
                 )}
@@ -322,6 +324,8 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
+         <Transition primaryColor="#000000" secondaryColor="#ffffff" />
+      
     </div>
   );
 }
