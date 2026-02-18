@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
+import { TransitionLink } from "@/components/TransitionLink";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -91,7 +92,7 @@ export default function Home() {
                       : (Array.isArray(project.images) ? project.images : []);
                     
                     return (
-                      <Link
+                      <TransitionLink
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
@@ -101,7 +102,7 @@ export default function Home() {
                           alt={project.title}
                           className="w-full h-full object-cover bg-amber-800 group-hover:scale-105 transition duration-300"
                         />
-                      </Link>
+                      </TransitionLink>
                     );
                   })}
                 </div>
@@ -116,7 +117,7 @@ export default function Home() {
                       : (Array.isArray(project.images) ? project.images : []);
                     
                     return (
-                      <Link
+                      <TransitionLink
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
@@ -126,7 +127,7 @@ export default function Home() {
                           alt={project.title}
                           className="w-full h-full  object-cover group-hover:scale-105 transition duration-300"
                         />
-                      </Link>
+                      </TransitionLink>
                     );
                   })}
                 </div>
