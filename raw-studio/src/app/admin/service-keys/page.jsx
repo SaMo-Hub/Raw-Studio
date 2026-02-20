@@ -7,6 +7,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import Checkbox from "@/components/Checkbox";
 import ServiceKeyEditModal from "@/components/ServiceKeyEditModal";
 import StatusTag from "@/components/StatusTag";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
@@ -342,9 +343,11 @@ export default function ServiceKeysPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="p-6">
-        <div className=" mx-auto">
+    <div className="min-h-screen w-full flex bg-white">
+            <Sidebar />
+      
+      <div className="p-6 w-full">
+        <div className=" mx-">
         <div className="flex items-center justify-between mb-12">
 
           {/* Titre */}

@@ -15,7 +15,7 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { title, slug, shortDesc, longDesc, images, technologies, externalLink, featured } =
+    const { title, slug, shortDesc, longDesc, client, images, technologies, externalLink, featured } =
       await request.json();
 
     if (!title || !slug) {
@@ -28,6 +28,7 @@ export async function POST(request) {
         slug,
         shortDesc,
         longDesc,
+        client,
         images: typeof images === "string" ? images : JSON.stringify(images || []),
         technologies: typeof technologies === "string" ? technologies : JSON.stringify(technologies || []),
         externalLink,

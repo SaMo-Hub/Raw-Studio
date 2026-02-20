@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import Button from "@/components/Button";
@@ -53,7 +54,6 @@ export default function EditProjectPage() {
     }
   }, [slug]);
 
-  // Vérifier si l'utilisateur est admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
@@ -70,42 +70,41 @@ export default function EditProjectPage() {
     checkAdminStatus();
   }, []);
 
-  // Wheel handler
   const handleWheel = (e) => {
     e.preventDefault();
     pageRef.current.scrollLeft += e.deltaY * 1.5;
   };
 
-  // Attach wheel as non-passive
   useEffect(() => {
     const el = pageRef.current;
     if (!el) return;
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [project]);
-useEffect(() => {
-  const el = pageRef.current;
-  if (!el || !project) return;
 
-  const lenis = new Lenis({
-    wrapper: el,
-    content: el,
-    orientation: "horizontal",
-    gestureOrientation: "both", // capte molette verticale ET horizontale
-    smoothWheel: true,
-    lerp: 0.08, // ajuste la fluidité (0.05 = très smooth, 0.15 = plus réactif)
-    infinite: false,
-  });
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el || !project) return;
 
-  function raf(time) {
-    lenis.raf(time);
+    const lenis = new Lenis({
+      wrapper: el,
+      content: el,
+      orientation: "horizontal",
+      gestureOrientation: "both",
+      smoothWheel: true,
+      lerp: 0.08,
+      infinite: false,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
     requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
 
-  return () => lenis.destroy();
-}, [project]);
-  // Drag handlers
+    return () => lenis.destroy();
+  }, [project]);
+
   const handleMouseDown = (e) => {
     isDragging.current = true;
     startX.current = e.pageX - pageRef.current.offsetLeft;
@@ -153,7 +152,6 @@ useEffect(() => {
     );
   }
 
-  // Parse images si c'est une string JSON
   const parsedImages =
     typeof project.images === "string"
       ? JSON.parse(project.images)
@@ -164,76 +162,178 @@ useEffect(() => {
   const images = parsedImages || [];
 
   return (
-  <div
-  ref={pageRef}
-  onMouseDown={handleMouseDown}
-  onMouseMove={handleMouseMove}
-  onMouseUp={handleMouseUp}
-  onMouseLeave={handleMouseUp}
-  className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
-  style={{ cursor: "grab", scrollbarWidth: "none" }}
->
-      {/* Navbar */}
+    <div
+      ref={pageRef}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
+      style={{ cursor: "grab", scrollbarWidth: "none" }}
+    >
       <Navbar />
 
       {/* LEFT COLUMN - Texte */}
       <div className="w-140 fixed shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
-        <Link
-          href="/"
-          className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition mb-12 block"
-        >
-          ← Back
-        </Link>
+        <div className="overflow-hidden mb-12 block">
+          <motion.div
+            initial={{ translateY: "100%" }}
+            animate={{ translateY: 0 }}
+            transition={{
+              delay: 1.1,
+              duration: 0.8,
+              ease: "easeOut",
+            }}
+          >
+            <Link
+              href="/"
+              className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition block"
+            >
+              ← Back
+            </Link>
+          </motion.div>
+        </div>
 
-        <h1 className="text-2xl font-bold mb-8 leading-tight">
-          {project.title}
+        <h1 className="text-2xl overflow-hidden uppercase font-bold mb-8 leading-tight">
+          <motion.span
+            initial={{ translateY: "100%" }}
+            animate={{ translateY: 0 }}
+            transition={{
+              delay: 1.2,
+              duration: 0.8,
+              ease: "easeOut",
+            }}
+            className="block"
+          >
+            {project.title}
+          </motion.span>
         </h1>
 
         <div className="text-md flex gap-4">
           <div className="uppercase space-y-4 text-gray-500">
-            <p>client</p>
-            <p>date</p>
-            <p>type</p>
-            <p>information</p>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.35, duration: 0.8, ease: "easeOut" }}
+              >
+                client
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.45, duration: 0.8, ease: "easeOut" }}
+              >
+                date
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.55, duration: 0.8, ease: "easeOut" }}
+              >
+                type
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.65, duration: 0.8, ease: "easeOut" }}
+              >
+                information
+              </motion.p>
+            </div>
           </div>
           <div className="space-y-4">
-            <p>{project.client}</p>
-            <p>{new Date(project.createdAt).getFullYear()}</p>
-            <p>
-              {project.technologies
-                ? typeof project.technologies === "string"
-                  ? JSON.parse(project.technologies).slice(0, 2).join(", ")
-                  : project.technologies.slice(0, 2).join(", ")
-                : "N/A"}
-            </p>
-            <p>{project.longDesc}</p>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.35, duration: 0.8, ease: "easeOut" }}
+              >
+                {project.client}
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.45, duration: 0.8, ease: "easeOut" }}
+              >
+                {new Date(project.createdAt).getFullYear()}
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.55, duration: 0.8, ease: "easeOut" }}
+              >
+                {project.technologies
+                  ? typeof project.technologies === "string"
+                    ? JSON.parse(project.technologies).slice(0, 2).join(", ")
+                    : project.technologies.slice(0, 2).join(", ")
+                  : "N/A"}
+              </motion.p>
+            </div>
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ translateY: "100%" }}
+                animate={{ translateY: 0 }}
+                transition={{ delay: 1.65, duration: 0.8, ease: "easeOut" }}
+              >
+                {project.longDesc}
+              </motion.p>
+            </div>
           </div>
         </div>
 
-
         {isAdmin && (
-          <Link
-            href={`/admin/projects/${project.id}`}
-            className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded"
-          >
-            Edit
-          </Link>
+          <div className="overflow-hidden">
+            <motion.div
+              initial={{ translateY: "100%" }}
+              animate={{ translateY: 0 }}
+              transition={{ delay: 1.75, duration: 1.2, ease: [0.9, 0, 0.1, 1] }}
+            >
+              <Link
+                href={`/admin/projects/${project.id}`}
+                className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded"
+              >
+                Edit
+              </Link>
+            </motion.div>
+          </div>
         )}
       </div>
-<div className="flex ml-140">
 
-      {images.map((img, index) => (
-        <img
-          key={index}
-          className="h-full bg-amber-700 shrink-0 object-cover"
-          style={{ width: "100vw", backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)` }}
-          src={img}
-          alt=""
-          draggable={false}
-        />
-      ))}
-</div>
-      {/* IMAGES */}
+      <motion.div
+        initial={{ translateX: 600 }}
+        animate={{ translateX: 0 }}
+        transition={{
+          delay: 1.5,
+          duration: 0.6,
+          ease: "easeOut",
+        }}
+        className="flex ml-140"
+      >
+        {images.map((img, index) => (
+          <img
+            key={index}
+            className="h-full bg-amber-700 shrink-0 object-cover"
+            style={{
+              width: "100vw",
+              backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)`,
+            }}
+            src={img}
+            alt=""
+            draggable={false}
+          />
+        ))}
+      </motion.div>
 
       <Transition primaryColor="#000000" secondaryColor="#ffffff" />
     </div>
