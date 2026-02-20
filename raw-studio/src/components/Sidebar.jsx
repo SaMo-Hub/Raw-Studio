@@ -34,7 +34,7 @@ export const Sidebar = () => {
   const isActive = (path) => pathname === path;
 
   return (
-    <div className="fixed left-0 top-0 h-screen z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
+    <div className=" left-0 top-0 h-screen z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <Link href="/admin" className="text-xl font-bold tracking-tight uppercase">

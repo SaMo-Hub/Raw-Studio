@@ -1,16 +1,16 @@
-
- 
- 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
-import { TransitionLink } from "@/components/TransitionLink";export default function ProjectDetailPage() {
+import { TransitionLink } from "@/components/TransitionLink";
+import Lenis from "lenis";
+
+export default function EditProjectPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug;
@@ -20,10 +20,14 @@ import { TransitionLink } from "@/components/TransitionLink";export default func
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const pageRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        // Récupérer tous les projets et trouver celui avec le slug
         const response = await fetch("/api/projects");
         if (response.ok) {
           const projects = await response.json();
@@ -66,6 +70,62 @@ import { TransitionLink } from "@/components/TransitionLink";export default func
     checkAdminStatus();
   }, []);
 
+  // Wheel handler
+  const handleWheel = (e) => {
+    e.preventDefault();
+    pageRef.current.scrollLeft += e.deltaY * 1.5;
+  };
+
+  // Attach wheel as non-passive
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [project]);
+useEffect(() => {
+  const el = pageRef.current;
+  if (!el || !project) return;
+
+  const lenis = new Lenis({
+    wrapper: el,
+    content: el,
+    orientation: "horizontal",
+    gestureOrientation: "both", // capte molette verticale ET horizontale
+    smoothWheel: true,
+    lerp: 0.08, // ajuste la fluidité (0.05 = très smooth, 0.15 = plus réactif)
+    infinite: false,
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  return () => lenis.destroy();
+}, [project]);
+  // Drag handlers
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    startX.current = e.pageX - pageRef.current.offsetLeft;
+    scrollLeft.current = pageRef.current.scrollLeft;
+    pageRef.current.style.cursor = "grabbing";
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.pageX - pageRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    pageRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+    if (pageRef.current) pageRef.current.style.cursor = "grab";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -102,75 +162,80 @@ import { TransitionLink } from "@/components/TransitionLink";export default func
         : [];
 
   const images = parsedImages || [];
-  const selectedImage = images[selectedImageIndex] || "";
-console.log(images,"gjdfgldfg");
 
   return (
-    <div className=" bg-white">
+  <div
+  ref={pageRef}
+  onMouseDown={handleMouseDown}
+  onMouseMove={handleMouseMove}
+  onMouseUp={handleMouseUp}
+  onMouseLeave={handleMouseUp}
+  className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
+  style={{ cursor: "grab", scrollbarWidth: "none" }}
+>
       {/* Navbar */}
       <Navbar />
 
-        <div className=" flex">
-          {/* LEFT COLUMN - Texte */}
-          <div className="w-140 fixed left-0 top-0 z-10 text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
-            <Link href="/" className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition mb-12 block">
-              ← Back
-            </Link>
+      {/* LEFT COLUMN - Texte */}
+      <div className="w-140 fixed shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
+        <Link
+          href="/"
+          className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition mb-12 block"
+        >
+          ← Back
+        </Link>
 
-            <h1 className="text-2xl font-bold mb-8 leading-tight">
-              {project.title}
-            </h1>
+        <h1 className="text-2xl font-bold mb-8 leading-tight">
+          {project.title}
+        </h1>
 
-            
-
- <div className="text-md flex gap-4">
-            <div className="uppercase space-y-4 text-gray-500">
-              <p>client</p>
-              <p>date</p>
-              <p>type</p>
-              <p>informaiton</p>
-            </div>
-            <div className="space-y-4">
-              <p>{project.client}</p>
-              <p>{new Date(project.createdAt).getFullYear()}</p>
-              <p>
-                {project.technologies
-                  ? typeof project.technologies === "string"
-                    ? JSON.parse(project.technologies).slice(0, 2).join(", ")
-                    : project.technologies.slice(0, 2).join(", ")
-                  : "N/A"}
-              </p>
-              <p>{project.longDesc} </p>
-            </div>
-          </div>         
-
-            <div className="flex-1"></div>
-
-            {isAdmin && (
-              <Link
-                href={`/admin/projects/${project.id}`}
-                className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded"
-              >
-                Edit
-              </Link>
-            )}
+        <div className="text-md flex gap-4">
+          <div className="uppercase space-y-4 text-gray-500">
+            <p>client</p>
+            <p>date</p>
+            <p>type</p>
+            <p>information</p>
           </div>
-
-         
-
-            {/* Navigation images (bas droite) */}
-       
-              <div className="ml-140 w-full flex h-screen overflow-hidden">
-                {images.map((img, index) => (
-                 <img className="h-full w-fit max-w-fit" src={img} alt="" />
-                ))}
-              </div>
-            
-
-            {/* External link (haut droite) */}
-           
+          <div className="space-y-4">
+            <p>{project.client}</p>
+            <p>{new Date(project.createdAt).getFullYear()}</p>
+            <p>
+              {project.technologies
+                ? typeof project.technologies === "string"
+                  ? JSON.parse(project.technologies).slice(0, 2).join(", ")
+                  : project.technologies.slice(0, 2).join(", ")
+                : "N/A"}
+            </p>
+            <p>{project.longDesc}</p>
+          </div>
         </div>
-   <Transition primaryColor="#000000" secondaryColor="#ffffff" />
+
+
+        {isAdmin && (
+          <Link
+            href={`/admin/projects/${project.id}`}
+            className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded"
+          >
+            Edit
+          </Link>
+        )}
+      </div>
+<div className="flex ml-140">
+
+      {images.map((img, index) => (
+        <img
+          key={index}
+          className="h-full bg-amber-700 shrink-0 object-cover"
+          style={{ width: "100vw", backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)` }}
+          src={img}
+          alt=""
+          draggable={false}
+        />
+      ))}
+</div>
+      {/* IMAGES */}
+
+      <Transition primaryColor="#000000" secondaryColor="#ffffff" />
     </div>
   );
 }

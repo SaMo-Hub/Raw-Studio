@@ -8,6 +8,7 @@ import Button from "@/components/Button";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Checkbox from "@/components/Checkbox";
 import StatusTag from "@/components/StatusTag";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
@@ -99,7 +100,9 @@ export default function AdminDashboard() {
   const handleDelete = async (id) => {
     if (confirm("Are you sure?")) {
       try {
-        const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+        const response = await fetch(`/api/projects/${id}`, {
+          method: "DELETE",
+        });
         if (response.ok) {
           setProjects(projects.filter((p) => p.id !== id));
           setSelectedProjects((prev) => {
@@ -129,7 +132,7 @@ export default function AdminDashboard() {
   const handleToggleSelectedProjects = async () => {
     const projectsToToggle = Array.from(selectedProjects);
     let updatedProjects = [...projects];
-    
+
     for (const id of projectsToToggle) {
       const project = updatedProjects.find((p) => p.id === id);
       if (project) {
@@ -141,24 +144,29 @@ export default function AdminDashboard() {
           });
           if (response.ok) {
             const updated = await response.json();
-            updatedProjects = updatedProjects.map((p) => (p.id === id ? updated : p));
+            updatedProjects = updatedProjects.map((p) =>
+              p.id === id ? updated : p,
+            );
           }
         } catch (error) {
           console.error("Toggle failed:", error);
         }
       }
     }
-    
+
     setProjects(updatedProjects);
     setSelectedProjects(new Set());
   };
 
   const handleDeleteSelectedProjects = async () => {
-    if (!confirm(`Delete ${selectedProjects.size} selected project(s)?`)) return;
+    if (!confirm(`Delete ${selectedProjects.size} selected project(s)?`))
+      return;
     const projectsToDelete = Array.from(selectedProjects);
     for (const id of projectsToDelete) {
       try {
-        const response = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+        const response = await fetch(`/api/projects/${id}`, {
+          method: "DELETE",
+        });
         if (response.ok) {
           setProjects(projects.filter((p) => p.id !== id));
         }
@@ -170,7 +178,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex bg-white">
+      <Sidebar />
       <div className="p-6">
         <div className=" mx-auto">
           {/* Header */}
@@ -179,13 +188,9 @@ export default function AdminDashboard() {
               <h1 className="text-4xl font-bold  uppercase">Project</h1>
               <p className="text-gray-600 text-sm">View your projects</p>
             </div>
-            <Button
-              href="/admin/projects/new"
-              size="md"
-            >
+            <Button href="/admin/projects/new" size="md">
               + Add a project
             </Button>
-           
           </div>
 
           {/* Table Header */}
@@ -193,52 +198,85 @@ export default function AdminDashboard() {
             <div className="mb- grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50  text-xs uppercase font-medium text-black/30 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <Checkbox
-                  checked={selectedProjects.size === getSortedProjects().length && getSortedProjects().length > 0}
-                  indeterminate={selectedProjects.size > 0 && selectedProjects.size < getSortedProjects().length}
+                  checked={
+                    selectedProjects.size === getSortedProjects().length &&
+                    getSortedProjects().length > 0
+                  }
+                  indeterminate={
+                    selectedProjects.size > 0 &&
+                    selectedProjects.size < getSortedProjects().length
+                  }
                   onChange={() => {
                     if (selectedProjects.size === getSortedProjects().length) {
                       setSelectedProjects(new Set());
                     } else {
-                      setSelectedProjects(new Set(getSortedProjects().map((p) => p.id)));
+                      setSelectedProjects(
+                        new Set(getSortedProjects().map((p) => p.id)),
+                      );
                     }
                   }}
                 />
-                <button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-black transition">
+                <button
+                  onClick={() => handleSort("name")}
+                  className="flex items-center gap-1 hover:text-black transition"
+                >
                   Name
                   {sortBy === "name" && (
-                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-xs">
+                      {sortOrder === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </button>
               </div>
               <div>
-                <button onClick={() => handleSort("type")} className="flex items-center gap-1 hover:text-black transition">
+                <button
+                  onClick={() => handleSort("type")}
+                  className="flex items-center gap-1 hover:text-black transition"
+                >
                   Type
                   {sortBy === "type" && (
-                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-xs">
+                      {sortOrder === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </button>
               </div>
               <div>
-                <button onClick={() => handleSort("client")} className="flex items-center gap-1 hover:text-black transition">
+                <button
+                  onClick={() => handleSort("client")}
+                  className="flex items-center gap-1 hover:text-black transition"
+                >
                   Client
                   {sortBy === "client" && (
-                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-xs">
+                      {sortOrder === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </button>
               </div>
               <div>
-                <button onClick={() => handleSort("date")} className="flex items-center gap-1 hover:text-black transition">
+                <button
+                  onClick={() => handleSort("date")}
+                  className="flex items-center gap-1 hover:text-black transition"
+                >
                   Date
                   {sortBy === "date" && (
-                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-xs">
+                      {sortOrder === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </button>
               </div>
               <div>
-                <button onClick={() => handleSort("state")} className="flex items-center gap-1 hover:text-black transition">
+                <button
+                  onClick={() => handleSort("state")}
+                  className="flex items-center gap-1 hover:text-black transition"
+                >
                   State
                   {sortBy === "state" && (
-                    <span className="text-xs">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    <span className="text-xs">
+                      {sortOrder === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </button>
               </div>
@@ -283,8 +321,10 @@ export default function AdminDashboard() {
                   key={project.id}
                   className={`grid grid-cols-6 gap-4 items-center p-4 
                     border-b border-gray-200 transition ${
-                    selectedProjects.has(project.id) ? "bg-gray-100" : "hover:bg-gray-50"
-                  }`}
+                      selectedProjects.has(project.id)
+                        ? "bg-gray-100"
+                        : "hover:bg-gray-50"
+                    }`}
                 >
                   {/* Image & Name */}
                   <div className="flex items-center gap-3">
@@ -315,13 +355,17 @@ export default function AdminDashboard() {
                         return null;
                       }
                     })()}
-                    <span className="font-medium  truncate">{project.title}</span>
+                    <span className="font-medium  truncate">
+                      {project.title}
+                    </span>
                   </div>
 
                   {/* Type */}
                   <div>
                     <span className="inline-block uppercase text-xs px-3 py-1 bg-black text-white rounded-full font-medium">
-                      {project.technologies ? JSON.parse(project.technologies)[0] : "—"}
+                      {project.technologies
+                        ? JSON.parse(project.technologies)[0]
+                        : "—"}
                     </span>
                   </div>
 
@@ -342,29 +386,47 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-end gap-4">
                     <ToggleSwitch
                       isActive={project.isActive}
-                      onChange={(newStatus) => handleToggleActive(project.id, !newStatus)}
+                      onChange={(newStatus) =>
+                        handleToggleActive(project.id, !newStatus)
+                      }
                     />
                     <Link
                       href={`/admin/projects/${project.id}`}
                       className="text-gray-600 hover:text-black transition"
                       title="Edit"
                     >
-                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 6.15723L17.1688 1.83398L22 6.66654L8.5 20.1665L2 22.1665L3.66885 15.834L13 6.15723ZM13 6.15723L17.8312 10.9898" stroke="currentColor" strokeWidth="2"/>
-</svg>
-
-
-
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13 6.15723L17.1688 1.83398L22 6.66654L8.5 20.1665L2 22.1665L3.66885 15.834L13 6.15723ZM13 6.15723L17.8312 10.9898"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </Link>
                     <button
                       onClick={() => handleDelete(project.id)}
                       className="text-gray-600 hover:text-red-600 transition"
                       title="Delete"
                     >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M19 8.25V22.25H5V8.25M16.5 5.75H22M16.5 5.75L14.4375 1.75H8.875L7.5 5.75M16.5 5.75H7.5M2 5.75H7.5M10 9.75V18.75M14 9.75V18.75" stroke="currentColor" strokeWidth="2"/>
-</svg>
-
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19 8.25V22.25H5V8.25M16.5 5.75H22M16.5 5.75L14.4375 1.75H8.875L7.5 5.75M16.5 5.75H7.5M2 5.75H7.5M10 9.75V18.75M14 9.75V18.75"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </div>

@@ -32,10 +32,10 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 ml-56">
-        <main className="min-h-screen bg-white">
+    <div className="">
+      {/* <Sidebar /> */}
+      <div className="">
+        <main className="">
           {children}
         </main>
       </div>

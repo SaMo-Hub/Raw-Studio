@@ -3,16 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
-import { TransitionLink } from "@/components/TransitionLink";
 
 export default function EditProjectPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
+
   const [project, setProject] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -23,24 +21,24 @@ export default function EditProjectPage() {
     externalLink: "",
     featured: false,
   });
-  const [uploading, setUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
-  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const pageRef = useRef(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftRef = useRef(0);
-  const targetScrollLeft = useRef(0);
-  const animating = useRef(false);
-
+  
   // Fetch project
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        console.log("Fetching project with ID:", id);
+
         if (!id) {
           setError("Project ID not found");
           setLoading(false);
@@ -52,32 +50,27 @@ export default function EditProjectPage() {
           priority: "high",
         });
 
+        console.log("API response status:", response.status);
+
         if (response.ok) {
           const project = await response.json();
 
+          // Parse categories si c'est une string JSON
           let cats = [];
           if (project.technologies) {
-            const parsedTechs =
-              typeof project.technologies === "string"
-                ? JSON.parse(project.technologies)
-                : project.technologies;
+            const parsedTechs = typeof project.technologies === "string" ? JSON.parse(project.technologies) : project.technologies;
             cats = Array.isArray(parsedTechs) ? parsedTechs : [];
           }
 
+          // Parse images si c'est une string JSON
           let imgs = [];
           if (project.images) {
-            imgs =
-              typeof project.images === "string"
-                ? JSON.parse(project.images)
-                : Array.isArray(project.images)
-                  ? project.images
-                  : [];
+            imgs = typeof project.images === "string" ? JSON.parse(project.images) : Array.isArray(project.images) ? project.images : [];
           }
 
           setProject(project);
           setFormData({
             title: project.title || "",
-            client: project.client || "",
             slug: project.slug || "",
             shortDesc: project.shortDesc || "",
             longDesc: project.longDesc || "",
@@ -98,10 +91,12 @@ export default function EditProjectPage() {
       }
     };
 
-    if (id) fetchProject();
+    if (id) {
+      fetchProject();
+    }
   }, [id]);
 
-  // Check admin
+  // Check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
@@ -114,99 +109,39 @@ export default function EditProjectPage() {
         console.error("Failed to verify admin status:", err);
       }
     };
+
     checkAdminStatus();
   }, []);
 
-  // Smooth scroll via lerp manuel
+  // Wheel handler
+  const handleWheel = (e) => {
+    if (!pageRef.current) return;
+    e.preventDefault();
+    pageRef.current.scrollLeft += e.deltaY * 1.5;
+  };
+
+  // Attach wheel as non-passive
   useEffect(() => {
     const el = pageRef.current;
     if (!el) return;
-
-    targetScrollLeft.current = 0;
-
-    const smoothScroll = () => {
-      const el = pageRef.current;
-      if (!el) return;
-      const diff = targetScrollLeft.current - el.scrollLeft;
-      if (Math.abs(diff) < 0.5) {
-        el.scrollLeft = targetScrollLeft.current;
-        animating.current = false;
-        return;
-      }
-      el.scrollLeft += diff * 0.08;
-      requestAnimationFrame(smoothScroll);
-    };
-
-    const onWheel = (e) => {
-      e.preventDefault();
-      targetScrollLeft.current += e.deltaY * 2;
-      // Recalcul dynamique du max à chaque event
-      const max = el.scrollWidth - el.clientWidth;
-      targetScrollLeft.current = Math.max(0, Math.min(targetScrollLeft.current, max));
-
-      if (!animating.current) {
-        animating.current = true;
-        smoothScroll();
-      }
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [project]);
-
-  const isInitialLoad = useRef(true);
-
-  // // Scroll vers la dernière image seulement quand l'user upload (pas au chargement)
-  // useEffect(() => {
-  //   if (isInitialLoad.current) {
-  //     isInitialLoad.current = false;
-  //     return;
-  //   }
-
-  //   const el = pageRef.current;
-  //   if (!el || uploadedImages.length === 0) return;
-
-  //   requestAnimationFrame(() => {
-  //     const max = el.scrollWidth - el.clientWidth;
-  //     targetScrollLeft.current = max;
-  //     animating.current = true;
-
-  //     const smoothScroll = () => {
-  //       const el = pageRef.current;
-  //       if (!el) return;
-  //       const diff = targetScrollLeft.current - el.scrollLeft;
-  //       if (Math.abs(diff) < 0.5) {
-  //         el.scrollLeft = targetScrollLeft.current;
-  //         animating.current = false;
-  //         return;
-  //       }
-  //       el.scrollLeft += diff * 0.08;
-  //       requestAnimationFrame(smoothScroll);
-  //     };
-
-  //     smoothScroll();
-  //   });
-  // }, [uploadedImages]);
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
 
   // Drag handlers
   const handleMouseDown = (e) => {
-    if (e.target.closest("input, textarea, button, a, label")) return;
     isDragging.current = true;
-    startX.current = e.pageX;
+    startX.current = e.pageX - pageRef.current.offsetLeft;
     scrollLeftRef.current = pageRef.current.scrollLeft;
-    targetScrollLeft.current = pageRef.current.scrollLeft;
     pageRef.current.style.cursor = "grabbing";
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging.current) return;
     e.preventDefault();
-    const walk = (e.pageX - startX.current) * 1.5;
-    const newScroll = scrollLeftRef.current - walk;
-    const max = pageRef.current.scrollWidth - pageRef.current.clientWidth;
-    const clamped = Math.max(0, Math.min(newScroll, max));
-    pageRef.current.scrollLeft = clamped;
-    targetScrollLeft.current = clamped;
+    const x = e.pageX - pageRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    pageRef.current.scrollLeft = scrollLeftRef.current - walk;
   };
 
   const handleMouseUp = () => {
@@ -226,9 +161,7 @@ export default function EditProjectPage() {
   const handleCategoryChange = (category) => {
     setFormData((prev) => ({
       ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category],
+      categories: prev.categories.includes(category) ? prev.categories.filter((c) => c !== category) : [...prev.categories, category],
     }));
   };
 
@@ -312,12 +245,10 @@ export default function EditProjectPage() {
       <div className="min-h-screen bg-white">
         <div className="pt-20 px-6 pb-12">
           <div className="max-w-5xl mx-auto">
-            <div className="mb-8">
-              <Link href="/admin" className="text-blue-600 hover:underline text-sm">
-                ← Back to Admin
-              </Link>
-            </div>
-            <p className="text-gray-600">{error}</p>
+            <Link href="/admin" className="text-blue-600 hover:underline text-sm">
+              ← Back to Admin
+            </Link>
+            <p className="text-gray-600 mt-4">{error}</p>
           </div>
         </div>
       </div>
@@ -333,53 +264,52 @@ export default function EditProjectPage() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
-      style={{ cursor: "grab", scrollbarWidth: "none", msOverflowStyle: "none" }}
+      style={{ cursor: "grab", scrollbarWidth: "none" }}
     >
-      {/* Navbar */}
-      <Navbar />
 
-      {/* LEFT COLUMN - fixe */}
-      <div className="w-140 fixed left-0 top-0 shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start z-10">
-        <Link
-          href="/"
-          className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition mb-12 block"
-        >
+      {/* LEFT COLUMN - Editable Form */}
+      <div className="w-140 fixed shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
+        <Link href="/admin" className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition mb-12 block">
           ← Back
         </Link>
 
+        {/* Title */}
         <h1 className="text-2xl font-bold mb-8 leading-tight">
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="bg-transparent w-full focus:outline-none"
+            className="w-full bg-transparent border-b border-gray-400 pb-2 focus:outline-none focus:border-gray-600 text-2xl font-bold"
             placeholder="Project title"
           />
         </h1>
 
-        <div className="text-md flex gap-4">
-          <div className="uppercase space-y-4 text-gray-500">
-            <p>client</p>
-            <p>slug</p>
-            <p>short desc</p>
-            <p>information</p>
+        {/* Edit Fields */}
+        <div className="text-md flex gap-4 mb-8">
+          <div className="uppercase space-y-4 text-gray-500 text-xs tracking-wide shrink-0">
+            <p>Title</p>
+            <p>Slug</p>
+            <p>Short Desc</p>
+            <p>Description</p>
+            <p>Type</p>
+            <p>Link</p>
           </div>
-          <div className="space-y-4 flex flex-col">
+          <div className="space-y-4 flex-1">
             <input
               type="text"
-              name="client"
-              value={formData.client}
+              name="title"
+              value={formData.title}
               onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
-              placeholder="Client"
+              className="w-full bg-transparent border-b border-gray-300 pb-1 text-sm focus:outline-none focus:border-gray-600"
+              placeholder="Title"
             />
             <input
               type="text"
               name="slug"
               value={formData.slug}
               onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
+              className="w-full bg-transparent border-b border-gray-300 pb-1 text-sm focus:outline-none focus:border-gray-600"
               placeholder="Slug"
             />
             <input
@@ -387,7 +317,7 @@ export default function EditProjectPage() {
               name="shortDesc"
               value={formData.shortDesc}
               onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
+              className="w-full bg-transparent border-b border-gray-300 pb-1 text-sm focus:outline-none focus:border-gray-600"
               placeholder="Short description"
             />
             <textarea
@@ -395,7 +325,7 @@ export default function EditProjectPage() {
               value={formData.longDesc}
               onChange={handleChange}
               rows="2"
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none"
+              className="w-full bg-transparent border-b border-gray-300 pb-1 text-sm focus:outline-none focus:border-gray-600 resize-none"
               placeholder="Full description"
             />
             <div className="flex gap-2 flex-wrap text-xs">
@@ -419,26 +349,21 @@ export default function EditProjectPage() {
               name="externalLink"
               value={formData.externalLink}
               onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
+              className="w-full bg-transparent border-b border-gray-300 pb-1 text-sm focus:outline-none focus:border-gray-600"
               placeholder="External link (optional)"
             />
           </div>
         </div>
 
-        <div className="mt-8 space-y-4 border-t border-gray-400 pt-4">
+        {/* Featured & Actions */}
+        <div className="space-y-4 pt-8 border-t border-gray-400">
           <label className="flex items-center gap-2 cursor-pointer text-xs uppercase tracking-wide">
-            <input
-              type="checkbox"
-              name="featured"
-              checked={formData.featured}
-              onChange={handleChange}
-              className="w-4 h-4"
-            />
+            <input type="checkbox" name="featured" checked={formData.featured} onChange={handleChange} className="w-4 h-4" />
             <span>Featured</span>
           </label>
 
           <label className="block text-xs uppercase tracking-wide text-gray-600 hover:text-black transition cursor-pointer">
-            <span>{uploading ? "Uploading..." : "+ Upload Images"}</span>
+            <span>+ Upload Images</span>
             <input
               type="file"
               multiple
@@ -459,43 +384,31 @@ export default function EditProjectPage() {
 
           {error && <p className="text-xs text-red-600">{error}</p>}
         </div>
-
-        {isAdmin && (
-          <Link
-            href={`/admin/projects/${project.id}`}
-            className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded mt-4"
-          >
-            Edit
-          </Link>
-        )}
       </div>
 
-      {/* IMAGES */}
-      <div className="flex ml-140 shrink-0">
+      {/* RIGHT COLUMN - Images */}
+      <div className="ml-140 overflow-x-scroll scroll-smooth flex gap-6 px-8 py-6" style={{ scrollBehavior: "auto", scrollPaddingRight: "2rem", WebkitOverflowScrolling: "auto" }}>
         {uploadedImages.length > 0 ? (
           uploadedImages.map((img, idx) => (
-            <div
-              key={idx}
-              className="flex-shrink-0 relative group h-screen"
-              style={{ width: "100vw" }}
-            >
-              <img
-                className="h-full w-full object-cover"
-                src={img}
-                alt=""
-                draggable={false}
-              />
-              <button
+            <div key={idx} className="flex-shrink-0 relative group">
+ <img
+          key={idx}
+          className="h-full bg-amber-700 shrink-0 object-cover"
+          style={{ width: "100vw", backgroundColor: `hsl(${idx}, 70%, 50%)` }}
+          src={img}
+          alt=""
+          draggable={false}
+        />              <button
                 type="button"
                 onClick={() => removeImage(idx)}
-                className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-2 right-2 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
               >
                 ✕
               </button>
             </div>
           ))
         ) : (
-          <div className="flex-shrink-0 h-screen w-screen bg-gray-100 flex items-center justify-center text-gray-400">
+          <div className="flex-shrink-0 h-96 w-96 bg-gray-100 flex items-center justify-center text-gray-400">
             <span className="text-center">
               <p className="text-sm">No images</p>
               <p className="text-xs mt-2">Upload images to get started</p>
@@ -504,7 +417,7 @@ export default function EditProjectPage() {
         )}
       </div>
 
-      {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
+      <Transition primaryColor="#000000" secondaryColor="#ffffff" />
     </form>
   );
 }
