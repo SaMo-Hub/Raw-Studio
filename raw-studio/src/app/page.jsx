@@ -139,7 +139,7 @@ export default function Home() {
     
 
       {/* Footer */}
-             <Transition primaryColor="#000000" secondaryColor="#ffffff" />
+             {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
     
     </div>
   );

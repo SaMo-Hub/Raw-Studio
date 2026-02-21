@@ -876,6 +876,15 @@ Save
       </div>
 
       {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleImageUpload}
+        className="hidden"
+      />
     </form>
   );
 }

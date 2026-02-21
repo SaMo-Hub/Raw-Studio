@@ -3,6 +3,9 @@ import "./globals.css";
 import LenisWrapper from "@/components/LenisWrapper";
 import Navbar from "@/components/Navbar";
 import { TransitionProvider } from "@/context/TransitionContext";
+import RootTransition from "@/components/RootTransition";
+import { Transition } from "@/components/Transition";
+import { TransitionWithKey } from "@/components/TransitionWithKey";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,9 +26,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.variable} font-neue font-medium text-xs antialiased bg-white text-gray-900`} suppressHydrationWarning>
         <TransitionProvider>
+          {/* <RootTransition /> */}
           <LenisWrapper>
             {children}
           </LenisWrapper>
+                    <TransitionWithKey  />
+
         </TransitionProvider>
       </body>
     </html>

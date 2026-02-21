@@ -126,30 +126,13 @@ export default function EditProjectPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-20 flex items-center justify-center min-h-screen">
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+     return null;
+
   }
 
   if (error || !project) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="pt-20 px-6 pb-12">
-          <div className="max-w-5xl mx-auto">
-            <div className="mb-8">
-              <Link href="/" className="text-blue-600 hover:underline text-sm">
-                ← Back to Portfolio
-              </Link>
-            </div>
-            <p className="text-gray-600">{error || "Project not found"}</p>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
+
   }
 
   const parsedImages =
@@ -174,7 +157,7 @@ export default function EditProjectPage() {
       <Navbar />
 
       {/* LEFT COLUMN - Texte */}
-      <div className="w-140 fixed shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
+      <div className="w-140 fixed z-20 shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
         <div className="overflow-hidden mb-12 block">
           <motion.div
             initial={{ translateY: "100%" }}
@@ -194,7 +177,7 @@ export default function EditProjectPage() {
           </motion.div>
         </div>
 
-        <h1 className="text-2xl overflow-hidden uppercase font-bold mb-8 leading-tight">
+        <h1 className=" overflow-hidden uppercase font-bold mb-8 leading-tight">
           <motion.span
             initial={{ translateY: "100%" }}
             animate={{ translateY: 0 }}
@@ -311,23 +294,16 @@ export default function EditProjectPage() {
       </div>
 
       <motion.div
-        initial={{ translateX: 600 }}
-        animate={{ translateX: 0 }}
-        transition={{
-          delay: 1.5,
-          duration: 0.6,
-          ease: "easeOut",
-        }}
-        className="flex ml-140"
-      >
+        initial={{ clipPath: "inset(100% 0% 0% 0%)" }}
+        animate={{ clipPath: "inset(0% 0% 0% 0%)" }}
+              transition={{ duration: 1.2, ease: [0.9, 0, 0.1, 1] }}
+
+className="flex   ml-140 shrink-0 relative"      >
+
         {images.map((img, index) => (
           <img
             key={index}
-            className="h-full bg-amber-700 shrink-0 object-cover"
-            style={{
-              width: "100vw",
-              backgroundColor: `hsl(${(index * 60) % 360}, 70%, 50%)`,
-            }}
+            className="shrink-0  w-auto relative group transition-all cursor-pointer "
             src={img}
             alt=""
             draggable={false}
@@ -335,7 +311,7 @@ export default function EditProjectPage() {
         ))}
       </motion.div>
 
-      <Transition primaryColor="#000000" secondaryColor="#ffffff" />
+      {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
     </div>
   );
 }

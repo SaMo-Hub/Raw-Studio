@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from "framer-motion";
 import { usePathname } from 'next/navigation';
 import { useTransition } from '@/context/TransitionContext';
@@ -8,14 +8,18 @@ import { useTransition } from '@/context/TransitionContext';
 export const Transition = ({primaryColor, secondaryColor}) => {
   const pathname = usePathname();
   const { isExiting, resetExit, progress } = useTransition();
-console.log( progress);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    // Petit délai pour laisser la page se rendre avant de lancer l'animation
+    const t = setTimeout(() => setIsMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     resetExit();
   }, [pathname, resetExit]);
 
   const formattedProgress = `${Math.round(progress)}%`;
-console.log(formattedProgress);
 
   return (
     <>
