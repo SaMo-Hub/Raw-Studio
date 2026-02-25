@@ -36,6 +36,7 @@ export default function EditProjectPage() {
   const [reorderItemIndex, setReorderItemIndex] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState(null);
 
   const pageRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -431,21 +432,21 @@ if (loading) {
     <div className="flex flex-col h-screen overflow-hidden bg-white">
       {/* Nav skeleton */}
       <nav className="flex w-full justify-between items-center px-12 mt-12 shrink-0">
-        <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-        <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+        <div className="h-8 w-20 bg-gray-200  animate-pulse" />
+        <div className="h-8 w-16 bg-gray-200  animate-pulse" />
       </nav>
 
       <div className="flex flex-1 overflow-hidden pt-[36px]">
         {/* Left column skeleton */}
         <div className="w-fit fixed left-0 px-12 flex flex-col justify-start z-10">
           {/* Title */}
-          <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mb-8" />
+          <div className="h-5 w-48 bg-gray-200  animate-pulse mb-8" />
 
           <div className="flex gap-4">
             {/* Labels */}
             <div className="uppercase space-y-4">
               {["client", "slug", "short desc", "information"].map((label) => (
-                <div key={label} className="h-4 w-16 bg-gray-100 rounded animate-pulse" />
+                <div key={label} className="h-4 w-16 bg-gray-100  animate-pulse" />
               ))}
             </div>
             {/* Values */}
@@ -453,7 +454,7 @@ if (loading) {
               {[140, 180, 120, 140].map((w, i) => (
                 <div
                   key={i}
-                  className="h-4 bg-gray-200 rounded animate-pulse"
+                  className="h-4 bg-gray-200  animate-pulse"
                   style={{ width: `${w}px` }}
                 />
               ))}
@@ -462,8 +463,8 @@ if (loading) {
 
           {/* Upload + Save */}
           <div className="mt-8 pt-4 border-t border-gray-200 space-y-3">
-            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200  animate-pulse" />
+            <div className="h-8 w-20 bg-gray-200  animate-pulse" />
           </div>
         </div>
 
@@ -538,6 +539,7 @@ Save
             <p>client</p>
             <p>slug</p>
             <p>short desc</p>
+            {/* <p>Type</p> */}
             <p>information</p>
           </div>
           <div className="space-y-4 flex flex-col">
@@ -565,6 +567,22 @@ Save
               className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
               placeholder="Short description"
             />
+            {/* <div className="flex gap-0 flex-wrap text-xs border border-gray-300 p-1 w-fit">
+              {["COMMERCIAL", "MUSIC VIDEO", "WEB"].map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`px-4 py-2 transition ${
+                    formData.categories.includes(cat)
+                      ? "bg-black text-white"
+                      : "bg-white text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div> */}
             <textarea
               name="longDesc"
               value={formData.longDesc}
@@ -573,34 +591,57 @@ Save
               className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none"
               placeholder="Full description"
             />
-            <div className="flex gap-2 flex-wrap text-xs">
-              {["COMMERCIAL", "MUSIC VIDEO", "WEB"].map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`px-2 py-1 border rounded transition ${
-                    formData.categories.includes(cat)
-                      ? "bg-gray-600 text-white border-gray-600"
-                      : "border-gray-400 text-gray-600 hover:border-gray-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <input
-              type="url"
-              name="externalLink"
-              value={formData.externalLink}
-              onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
-              placeholder="External link (optional)"
-            />
+        
           </div>
         </div>
 
-       
+    <div className="flex gap-0 text-xs border border-gray-300 p-1 w-fit bg-white relative">
+                {(() => {
+                  const options = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
+                  const BTN_W = 114; // px
+                  const PAD = 4; // container padding
+                  const selectedIndex = formData.categories.length > 0 ? options.indexOf(formData.categories[0]) : -1;
+                  const targetIndex = hoverIndex !== null ? hoverIndex : (selectedIndex !== -1 ? selectedIndex : 0);
+
+                  return (
+                    <>
+                      {options.map((cat, idx) => {
+                        const isUnderSlider = targetIndex === idx;
+                        const isSelectedBtn = selectedIndex === idx;
+                        const textClass = isUnderSlider
+                          ? "text-white"
+                          : isSelectedBtn
+                          ? "text-black"
+                          : "text-gray-400";
+
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => handleCategoryChange(cat)}
+                            onMouseEnter={() => setHoverIndex(idx)}
+                            onMouseLeave={() => setHoverIndex(null)}
+                            className={`w-[114px] py-2 relative z-10 transition-colors duration-200 ${textClass}`}
+                          >
+                            {cat}
+                          </button>
+                        );
+                      })}
+
+                      {/* slider background */}
+                      <div
+                        className="absolute h-8 bg-black z-0"
+                        style={{
+                          width: `${BTN_W}px`,
+                          left: `${PAD + targetIndex * BTN_W}px`,
+                          top: `4px`,
+                          transition: "left 0.28s ease-out",
+                        }}
+                      />
+                    </>
+                  );
+                })()}
+              </div>
   
       </div>
 
@@ -633,7 +674,7 @@ Save
                 {/* Action Bar - visible quand l'image est sélectionnée */}
                 {selectedImageIndex === idx && selectedImagePosition && (
                   <div
-                    className="absolute z-10 bg-white border border-gray-300 rounded shadow-lg flex gap-2 px-3 py-2"
+                    className="absolute z-10 rounded-0 bg-white  bg flex gap-2 px-3 py-2"
                     style={{
                       top: `${selectedImagePosition.y}px`,
                       left: `${selectedImagePosition.x}px`,
@@ -647,10 +688,13 @@ Save
                         moveImageUp(idx);
                       }}
                       disabled={idx === 0}
-                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="p-2 hover:bg-gray-100  disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire reculer"
                     >
-                      ←
+                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.33333 15.8334L2.5 10.0001M2.5 10.0001L8.33333 4.16675M2.5 10.0001L17.5 10.0001" stroke="#414651" strokeWidth="1.66667"/>
+</svg>
+
                     </button>
                     <button
                       type="button"
@@ -659,10 +703,13 @@ Save
                         moveImageDown(idx);
                       }}
                       disabled={idx === uploadedImages.length - 1}
-                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="p-2 hover:bg-gray-100  disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire avancer"
                     >
-                      →
+                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11.6667 15.8332L17.5 9.99984M17.5 9.99984L11.6667 4.1665M17.5 9.99984L2.5 9.99984" stroke="#414651" strokeWidth="1.66667"/>
+</svg>
+
                     </button>
                     <div className="w-px bg-gray-300"></div>
                     <button
@@ -671,10 +718,13 @@ Save
                         e.stopPropagation();
                         duplicateImage(idx);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded transition"
+                      className="p-2 hover:bg-gray-100  transition"
                       title="Dupliquer"
                     >
-                      ⎘
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.52702 4.20054V1.68213H18.3604V12.5155H15.8589M12.4738 7.485H1.64048V18.3183H12.4738V7.485Z" stroke="#414651" stroke-width="1.66667"/>
+</svg>
+
                     </button>
                     <button
                       type="button"
@@ -682,10 +732,13 @@ Save
                         e.stopPropagation();
                         replaceImage(idx);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded transition"
+                      className="p-2 hover:bg-gray-100  transition"
                       title="Remplacer"
                     >
-                      🖊
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.75 5.68941L13.8766 2.5L17.5 6.06514L7.375 16.0245L2.5 17.5L3.75164 12.8283L10.75 5.68941ZM10.75 5.68941L14.3734 9.25454" stroke="#414651" stroke-width="1.66667"/>
+</svg>
+
                     </button>
                     <button
                       type="button"
@@ -693,10 +746,13 @@ Save
                         e.stopPropagation();
                         removeImage(idx);
                       }}
-                      className="p-2 hover:bg-red-100 text-red-600 rounded transition"
+                      className="p-2 hover:bg-red-100 text-red-600  transition"
                       title="Supprimer"
                     >
-                      🗑
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4.75 7.2561V17.5H15.25V7.2561M6.625 5.42683H2.5M6.625 5.42683L8.17188 2.5H12.3438L13.375 5.42683M6.625 5.42683H13.375M17.5 5.42683H13.375M11.5 8.35366V14.939M8.5 8.35366V14.939" stroke="#414651" stroke-width="1.66667"/>
+</svg>
+
                     </button>
                   </div>
                 )}
@@ -707,12 +763,12 @@ Save
                     e.stopPropagation();
                     removeImage(idx);
                   }}
-                  className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
+                  className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1  text-xs opacity-0 group-hover:opacity-100 transition"
                 >
                   ✕
                 </button>
                 {/* Image counter */}
-                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded text-xs">
+                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1  text-xs">
                   {idx + 1} / {uploadedImages.length}
                 </div>
               </div>
@@ -764,7 +820,7 @@ Save
                       onDragOver={(e) => handleReorderDragOver(e, idx)}
                       onDragLeave={handleReorderDragLeave}
                       onDrop={(e) => handleReorderDrop(e, idx)}
-                      className={`flex items-center gap-3 p-3 border rounded transition cursor-grab active:cursor-grabbing ${
+                      className={`flex items-center gap-3 p-3 border  transition cursor-grab active:cursor-grabbing ${
                         draggedIndex === idx
                           ? "opacity-50 border-gray-400 bg-gray-50"
                           : dragOverIndex === idx
@@ -778,7 +834,7 @@ Save
                       <img
                         src={img}
                         alt={`Image ${idx + 1}`}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-12 h-12 object-cover "
                         draggable="false"
                       />
                       <div className="flex-1">

@@ -24,7 +24,7 @@ export function TransitionProvider({ children }) {
     const timeout = setTimeout(() => {
       setProgress(100);
       clearInterval(interval);
-    }, 1200);
+    }, 100);
 
     return () => {
       clearInterval(interval);
