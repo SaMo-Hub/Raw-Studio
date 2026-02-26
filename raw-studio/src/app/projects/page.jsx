@@ -324,7 +324,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
-         <Transition primaryColor="#000000" secondaryColor="#ffffff" />
+         {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
       
     </div>
   );
