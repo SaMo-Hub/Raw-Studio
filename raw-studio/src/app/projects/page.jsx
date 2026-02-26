@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import gsap from "gsap";
 import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
@@ -62,7 +63,7 @@ export default function ProjectsPage() {
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
-  const [viewMode, setViewMode] = useState("grid"); // grid, horizontal, list
+  const [viewMode, setViewMode] = useState("horizontal"); // grid, horizontal, list
   const horizontalScrollRef = useRef(null);
 
   useEffect(() => {
@@ -88,6 +89,49 @@ export default function ProjectsPage() {
     document.addEventListener("wheel", handleWheel, { passive: false });
     return () => document.removeEventListener("wheel", handleWheel);
   }, [viewMode]);
+
+  // Animation d'entrée GSAP pour la vue horizontale
+  useEffect(() => {
+    if (viewMode === "horizontal" && !loading) {
+      const items = document.querySelectorAll("[data-horizontal-item]");
+      const texts = document.querySelectorAll("[data-horizontal-text]");
+
+      if (items.length > 0) {
+        gsap.fromTo(
+          items,
+          {
+            // opacity: 0,
+            y: "120%",
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power4s.out",
+          }
+        );
+      }
+
+      if (texts.length > 0) {
+        gsap.fromTo(
+          texts,
+          {
+            // opacity: 0,
+            y: 65,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            // stagger: 0.1,
+            // ease: "power2.inOut",
+
+          }
+        );
+      }
+    }
+  }, [viewMode, filteredProjects, loading]);
 
   const fetchProjects = async () => {
     try {
@@ -150,7 +194,7 @@ export default function ProjectsPage() {
 
   return (
     <div className=" bg-white pt-24">
-          <Navbar />
+      <Navbar />
 
       <div className="">
         {/* Sidebar Left - Categories */}
@@ -204,7 +248,7 @@ export default function ProjectsPage() {
               <>
                 {/* Grid View */}
                 {viewMode === "grid" && (
-                  <div className="uppercase grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
+                  <div className="uppercase grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6 ">
                     {filteredProjects.map((project) => (
                       <TransitionLink
                         key={project.id}
@@ -215,13 +259,13 @@ export default function ProjectsPage() {
                           <img
                             src={getProjectImage(project)}
                             alt={project.title}
-                            className="w-full  h-full object-cover group-hover:scale-105 transition duration-300"
+                            className="w-full h-full  object-cover group-hover:scale-105 transition duration-300"
                           />
                         </div>
                         <h3 className="mt-2 ml-1 transition">
                           {project.title}
                         </h3>
-                      
+
                       </TransitionLink>
                     ))}
                   </div>
@@ -237,14 +281,26 @@ export default function ProjectsPage() {
                         className="group h-full cursor-pointer flex flex-col shrink-0"
                       >
                         <div className="relative flex flex-col">
-                          <img
-                            src={getProjectImage(project)}
-                            alt={project.title}
-                            className="h-[73vh] w-96 object-cover group-hover:scale-105 transition duration-300"
-                          />
-                          <h3 className="mt-2 ml-1 text-black transition">
-                            {project.title}
-                          </h3>
+                          <div
+                            className="h-[73vh] overflow-hidden w-96 "
+                          >
+
+                            <img
+                              data-horizontal-item
+
+                              src={getProjectImage(project)}
+                              alt={project.title}
+                              className="h-full  w-full object-cover group-hover:scale-105 "
+                            />
+                          </div>
+                          <div className="relative overflow-hidden">
+
+                            <h3
+                              data-horizontal-text
+                              className="mt-2   ml-1 text-black " >
+                              {project.title}
+                            </h3>
+                          </div>
                         </div>
                       </TransitionLink>
                     ))}
@@ -253,9 +309,9 @@ export default function ProjectsPage() {
 
                 {/* List View */}
                 {viewMode === "list" && (
-  <div className="w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
+                  <div className="w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
                     {/* Image centrale fixe */}
-    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140  overflow-hidden pointer-events-none z-10">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140  overflow-hidden pointer-events-none z-10">
                       {filteredProjects.map((project, index) => (
                         <img
                           key={project.id}
@@ -294,7 +350,7 @@ export default function ProjectsPage() {
                           if (currentImg) currentImg.style.opacity = "0";
                         }}
                       >
-                         <div className="relative py-2 bg-white w-1/5 -ml-12">
+                        <div className="relative py-2 bg-white w-1/5 -ml-12">
                           <h3 className="font-neue  ml-12">
                             {"["}
                             {index}
@@ -324,8 +380,8 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
-         {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
-      
+      {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
+
     </div>
   );
 }

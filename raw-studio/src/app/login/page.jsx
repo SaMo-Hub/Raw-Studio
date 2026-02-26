@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import gsap from "gsap";
 import Button from "@/components/Button";
 
 export default function LoginPage() {
@@ -10,6 +11,28 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Animation d'entrée des éléments du formulaire
+  useEffect(() => {
+    const inputField = document.querySelector("[data-login-input]");
+    const background = document.querySelector("[data-login-background]");
+    const submitBtn = document.querySelector("[data-login-submit]");
+    
+    gsap.fromTo(
+      [background, inputField, submitBtn],
+      {
+        // opacity: 0,
+        y: 100,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power2.out",
+      }
+    );
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +72,9 @@ export default function LoginPage() {
         {/* Header */}
        
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex h-fit bg-black w-fit p-1 ">
+        <div className="overflow-hidden">
+        <form               data-login-background
+onSubmit={handleSubmit} className="flex h-fit overflow-hidden bg-black w-fit p-1 ">
          
           
             <input
@@ -60,6 +85,7 @@ export default function LoginPage() {
               placeholder="••••••••"
               className="text-white px-3 "
               disabled={loading}
+              data-login-input
             />
          
 
@@ -69,11 +95,13 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             variant="secondary"
+            data-login-submit
           >
             {loading ? "Signing in..." : "Login"}
           </Button>
           
         </form>
+        </div>
   {error && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
               {error}
