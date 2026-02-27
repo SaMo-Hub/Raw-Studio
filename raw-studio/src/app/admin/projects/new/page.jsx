@@ -214,12 +214,40 @@ export default function NewProjectPage() {
       return;
     }
 
+    // Calculer la position finale de l'image déplacée après le splice
+    let finalIndex = targetIndex;
+    if (draggedIndex < targetIndex) {
+      finalIndex = targetIndex - 1;  // L'enlèvement décale la position
+    }
+
     setUploadedImages((prev) => {
       const newArray = [...prev];
       const draggedImage = newArray[draggedIndex];
       newArray.splice(draggedIndex, 1);
       newArray.splice(targetIndex, 0, draggedImage);
       return newArray;
+    });
+
+    // Mettre à jour l'image sélectionnée pour qu'elle suive l'image déplacée
+    setSelectedImageIndex((prevIndex) => {
+      if (prevIndex === null) return null;
+
+      // Si l'image sélectionnée est celle qui est déplacée
+      if (draggedIndex === prevIndex) {
+        return finalIndex;
+      }
+
+      // Ajuster l'index si d'autres images bougent avant/après la sélection
+      if (draggedIndex < prevIndex && targetIndex >= prevIndex) {
+        // L'image drag provient de avant la sélection et va après
+        return prevIndex - 1;
+      }
+      if (draggedIndex > prevIndex && targetIndex <= prevIndex) {
+        // L'image drag provient de après la sélection et va avant
+        return prevIndex + 1;
+      }
+
+      return prevIndex;
     });
 
     setDraggedIndex(null);

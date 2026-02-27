@@ -34,10 +34,10 @@ export const Sidebar = () => {
   const isActive = (path) => pathname === path;
 
   return (
-    <div className=" left-0 top-0 h-screen z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
+    <div className=" left-0 top-0 h-screen min-w-56 z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <Link href="/admin" className="text-xl font-bold tracking-tight uppercase">
+      <div className="px-6 py-6 border-b border-gray-200">
+        <Link href="/" className="text-xl font-bold tracking-tight uppercase">
           <svg
             width="51"
             height="23"

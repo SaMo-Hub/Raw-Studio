@@ -2,19 +2,53 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const data = await response.json();
+        if (data.isLoggedIn) {
+          setSession(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch session:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+  }, []);
 
   // Hide navbar on admin pages
   if (pathname?.startsWith("/admin")) {
     return null;
   }
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setSession(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+  console.log(session);
+  
+
   return (
     <nav className="fixed top-0 left-0 uppercase right-0 z-50 text-white mix-blend-difference">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      
+      <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         {/* Logo */}
         <TransitionLink href="/" className="text-2xl tracking-tight">
           <svg
@@ -58,19 +92,72 @@ export default function Navbar() {
               </span>
             </span>
           </Link>
-          <TransitionLink
-            href="/login"
-            className="text-xs medium transition group relative overflow-hidden"
-          >
-            <span className="relative block h-full overflow-hidden">
-              <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
-                Login
-              </span>
-              <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
-                Login
-              </span>
-            </span>
-          </TransitionLink>
+
+          {!loading && session ? (
+            <>
+              {session.role === "ADMIN" && (
+                <TransitionLink
+                  href="/admin"
+                  className="text-xs medium transition group relative overflow-hidden"
+                >
+                  <span className="relative block h-full overflow-hidden">
+                    <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                      Dashboard
+                    </span>
+                    <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                      Dashboard
+                    </span>
+                  </span>
+                </TransitionLink>
+              )}
+
+              {session.role === "SERVICE" && (
+                <TransitionLink
+                  href="/service"
+                  className="text-xs medium transition group relative overflow-hidden"
+                >
+                  <span className="relative block h-full overflow-hidden">
+                    <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                      Service
+                    </span>
+                    <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                      Service
+                    </span>
+                  </span>
+                </TransitionLink>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="text-xs medium transition group relative overflow-hidden"
+              >
+                <span className="relative uppercase block h-full overflow-hidden">
+                  <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                    Logout
+                  </span>
+                  <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                    Logout
+                  </span>
+                </span>
+              </button>
+            </>
+          ) : (
+            !loading && (
+              <TransitionLink
+                href="/login"
+                className="text-xs medium transition group relative overflow-hidden"
+              >
+                <span className="relative block h-full overflow-hidden">
+                  <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                    Login
+                  </span>
+                  <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                    Login
+                  </span>
+                </span>
+              </TransitionLink>
+            )
+          )}
         </div>
       </div>
     </nav>

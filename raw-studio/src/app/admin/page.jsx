@@ -180,7 +180,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen flex bg-white">
       <Sidebar />
-      <div className="p-6">
+      <div className="px-6 py-4">
         <div className=" mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-12">

@@ -19,7 +19,7 @@ const Button = ({
 
   // Base styles with smooth transitions and overflow hidden for text animation
   const baseStyles =
-    "font-medium uppercase focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden active:scale-95 hover:scale-105 transition-transform duration-200 ease-out";
+    "font-medium uppercase focus:outline-none  disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden active:scale-95 hover:scale-105 transition-transform duration-200 ease-out";
 
   // Size variants
   const sizeStyles = {
@@ -31,10 +31,10 @@ const Button = ({
   // Color variants with smooth transitions
   const variantStyles = {
     primary: "bg-black text-white s transition-all duration-300",
-    secondary: "border bg-white border-gray-300 text-gray-900 s transition-all duration-300",
+    secondary: "border bg-white border-gray-300 text-gray-900 s transition-all duration-300 ",
     danger: "bg-red-600 text-white s transition-all duration-300",
     success: "bg-green-600 text-white s transition-all duration-300",
-    ghost: "text-gray-900 transition-all duration-300",
+    ghost: "text-gray-900 transition-all duration-300 hover:bg-gray-100",
   };
 
   const combinedClassName = `${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`;

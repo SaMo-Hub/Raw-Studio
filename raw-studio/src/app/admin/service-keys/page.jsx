@@ -346,7 +346,7 @@ export default function ServiceKeysPage() {
     <div className="min-h-screen w-full flex bg-white">
             <Sidebar />
       
-      <div className="p-6 w-full">
+      <div className="px-6 py-4">
         <div className=" mx-">
         <div className="flex items-center justify-between mb-12">
 

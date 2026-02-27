@@ -230,12 +230,39 @@ export default function EditProjectPage() {
       return;
     }
 
+    // Calculer la position finale de l'image déplacée après le splice
+    let finalIndex = targetIndex;
+    if (draggedIndex < targetIndex) {
+      finalIndex = targetIndex - 1;  // L'enlèvement décale la position
+    }
+
     setUploadedImages((prev) => {
       const newArray = [...prev];
       const draggedImage = newArray[draggedIndex];
       newArray.splice(draggedIndex, 1);
       newArray.splice(targetIndex, 0, draggedImage);
       return newArray;
+    });
+
+    // Mettre à jour l'image sélectionnée pour qu'elle suive l'image déplacée
+    setSelectedImageIndex((prevIndex) => {
+      if (prevIndex === null) return null;
+
+      // Si l'image sélectionnée est celle qui est déplacée
+      if (draggedIndex === prevIndex) {
+        return finalIndex;
+      }
+
+      // Si l'image sélectionnée n'est pas celle déplacée, rester sur la même image
+      // en recalculant son nouvel index après le réarrangement
+      if (draggedIndex < prevIndex && targetIndex >= prevIndex) {
+        return prevIndex - 1;
+      }
+      if (draggedIndex > prevIndex && targetIndex <= prevIndex) {
+        return prevIndex + 1;
+      }
+
+      return prevIndex;
     });
 
     setDraggedIndex(null);
@@ -303,6 +330,12 @@ export default function EditProjectPage() {
         [newArray[index], newArray[index - 1]] = [newArray[index - 1], newArray[index]];
         return newArray;
       });
+      // Suivre l'image sélectionnée
+      if (selectedImageIndex === index) {
+        setSelectedImageIndex(index - 1);
+      } else if (selectedImageIndex === index - 1) {
+        setSelectedImageIndex(index);
+      }
     }
     setContextMenu(null);
   };
@@ -314,6 +347,12 @@ export default function EditProjectPage() {
         [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
         return newArray;
       });
+      // Suivre l'image sélectionnée
+      if (selectedImageIndex === index) {
+        setSelectedImageIndex(index + 1);
+      } else if (selectedImageIndex === index + 1) {
+        setSelectedImageIndex(index);
+      }
     }
     setContextMenu(null);
   };
@@ -324,6 +363,12 @@ export default function EditProjectPage() {
         const img = prev[index];
         return [img, ...prev.slice(0, index), ...prev.slice(index + 1)];
       });
+      // Suivre l'image sélectionnée
+      if (selectedImageIndex === index) {
+        setSelectedImageIndex(0);
+      } else if (selectedImageIndex !== null && selectedImageIndex < index) {
+        setSelectedImageIndex(selectedImageIndex + 1);
+      }
     }
     setContextMenu(null);
   };
@@ -334,6 +379,12 @@ export default function EditProjectPage() {
         const img = prev[index];
         return [...prev.slice(0, index), ...prev.slice(index + 1), img];
       });
+      // Suivre l'image sélectionnée
+      if (selectedImageIndex === index) {
+        setSelectedImageIndex(uploadedImages.length - 1);
+      } else if (selectedImageIndex !== null && selectedImageIndex > index) {
+        setSelectedImageIndex(selectedImageIndex - 1);
+      }
     }
     setContextMenu(null);
   };
@@ -768,9 +819,7 @@ Save
                   ✕
                 </button>
                 {/* Image counter */}
-                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1  text-xs">
-                  {idx + 1} / {uploadedImages.length}
-                </div>
+              
               </div>
             ))}
             {/* Upload section after images */}

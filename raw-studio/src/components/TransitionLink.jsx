@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTransition } from "@/context/TransitionContext";
 
-export function TransitionLink({ href, children, onClick, ...props }) {
+export function TransitionLink({ className, href, children, onClick, ...props }) {
   const router = useRouter();
   const pathname = usePathname();
   const { triggerExit } = useTransition();
@@ -24,11 +24,11 @@ export function TransitionLink({ href, children, onClick, ...props }) {
 
     setTimeout(() => {
       router.push(href);
-    }, 1200);
+    }, 0);
   };
 
   return (
-    <Link href={href} onClick={handleClick} {...props}>
+    <Link className={className} href={href} onClick={handleClick} {...props}>
       {children}
     </Link>
   );

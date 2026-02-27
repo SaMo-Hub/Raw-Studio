@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import Lenis from "lenis";
 import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
@@ -46,7 +47,6 @@ const VIEW_MODES = [
       </svg>
     ),
   },
-
   {
     id: "list",
     label: "List",
@@ -63,8 +63,14 @@ export default function ProjectsPage() {
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
-  const [viewMode, setViewMode] = useState("horizontal"); // grid, horizontal, list
+  const [viewMode, setViewMode] = useState("horizontal");
   const horizontalScrollRef = useRef(null);
+  const lenisRef = useRef(null);
+  const viewModeRef = useRef(viewMode);
+  
+  useEffect(() => {
+    viewModeRef.current = viewMode;
+  }, [viewMode]);
 
   useEffect(() => {
     fetchProjects();
@@ -74,73 +80,182 @@ export default function ProjectsPage() {
     filterProjects(selectedCategory);
   }, [selectedCategory, projects]);
 
-  // Gestion du scroll horizontal avec souris/touchpad
+  // Scroll horizontal fluide avec Lenis
   useEffect(() => {
-    const handleWheel = (e) => {
-      if (viewMode === "horizontal") {
-        const container = horizontalScrollRef.current;
-        if (container) {
-          e.preventDefault();
-          container.scrollLeft += e.deltaY;
-        }
+    const container = horizontalScrollRef.current;
+    if (!container || viewMode !== "horizontal") return;
+
+    // Créer instance Lenis pour scroll horizontal fluide
+    const lenis = new Lenis({
+      wrapper: container,
+      content: container,
+      orientation: "horizontal",
+      gestureOrientation: "both",
+      smoothWheel: true,
+      lerp: 0.08,
+      infinite: false,
+    });
+
+    lenisRef.current = lenis;
+
+    // Animation loop
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => {
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
       }
     };
+  }, [viewMode, filteredProjects]);
 
-    document.addEventListener("wheel", handleWheel, { passive: false });
-    return () => document.removeEventListener("wheel", handleWheel);
-  }, [viewMode]);
-
-  // Animation d'entrée GSAP pour la vue horizontale
+  // Animation d'entrée boutons de filtre / vue
   useEffect(() => {
-    if (viewMode === "horizontal" && !loading) {
-      const items = document.querySelectorAll("[data-horizontal-item]");
-      const texts = document.querySelectorAll("[data-horizontal-text]");
+    if (!loading) {
+      const filterButtons = document.querySelectorAll("[data-filter-button]");
+      const viewModeButtons = document.querySelectorAll("[data-view-mode-button]");
 
-      if (items.length > 0) {
+      if (filterButtons.length > 0) {
         gsap.fromTo(
-          items,
-          {
-            // opacity: 0,
-            y: "120%",
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            stagger: 0.1,
-            ease: "power4s.out",
-          }
+          filterButtons,
+          { y: 90 },
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
         );
       }
-
-      if (texts.length > 0) {
+      if (viewModeButtons.length > 0) {
         gsap.fromTo(
-          texts,
-          {
-            // opacity: 0,
-            y: 65,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            // stagger: 0.1,
-            // ease: "power2.inOut",
-
-          }
+          viewModeButtons,
+          { y: 90 },
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
         );
       }
     }
+  }, [loading]);
+
+  // ─── Animation d'ENTRÉE unifiée (grid + horizontal + list) ───────────────────
+  useEffect(() => {
+    if (!loading) {
+      const currentMode = viewModeRef.current;
+
+      if (currentMode === "horizontal" || currentMode === "grid") {
+        // Items image
+        const items = document.querySelectorAll("[data-horizontal-item]");
+        const texts = document.querySelectorAll("[data-horizontal-text]");
+
+        if (items.length > 0) {
+          gsap.set(items, { y: "140%", rotateX: 12 });
+          gsap.to(items, {
+            y: 0,
+            rotateX: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 1.1,
+            stagger: { each: 0.02, ease: "power2.out" },
+            ease: "expo.out",
+            clearProps: "transform,opacity",
+          });
+        }
+        if (texts && texts.length > 0) {
+          gsap.set(texts, { y: "100%", opacity: 0, clipPath: "inset(0 0 100% 0)" });
+          gsap.to(texts, {
+            y: 0,
+            opacity: 1,
+            clipPath: "inset(0 0 0% 0)",
+            duration: 0.9,
+            stagger: { each: 0.07, from: "start" },
+            ease: "expo.out",
+            delay: 0.1,
+            clearProps: "transform,opacity,clipPath",
+          });
+        }
+      }
+
+      if (currentMode === "list") {
+        const rows = document.querySelectorAll("[data-list-row]");
+        if (rows.length > 0) {
+          gsap.set(rows, { y: "60px", opacity: 0, clipPath: "inset(0 0 100% 0)" });
+          gsap.to(rows, {
+            y: 0,
+            opacity: 1,
+            clipPath: "inset(0 0 0% 0)",
+            duration: 0.7,
+            stagger: { each: 0.05, from: "start" },
+            ease: "expo.out",
+            clearProps: "transform,opacity,clipPath",
+          });
+        }
+      }
+    }
   }, [viewMode, filteredProjects, loading]);
+
+  // ─── Animation de SORTIE unifiée ──────────────────────────────────────────────
+  /**
+   * Joue l'animation de sortie pour le mode courant, puis appelle onComplete.
+   */
+  const animateOut = (onComplete) => {
+    const currentMode = viewModeRef.current;
+
+    if (currentMode === "horizontal" || currentMode === "grid") {
+      const items = document.querySelectorAll("[data-horizontal-item]");
+      const texts = document.querySelectorAll("[data-horizontal-text]");
+
+      const tl = gsap.timeline({ onComplete });
+
+      if (texts.length > 0) {
+        tl.to(texts, {
+          y: "-100%",
+          clipPath: "inset(0 0 0% 100%)",
+          opacity: 0,
+          duration: 0.45,
+          stagger: { each: 0.03, from: "start" },
+          ease: "expo.in",
+        });
+      }
+      if (items.length > 0) {
+        tl.to(
+          items,
+          {
+            y: "-120%",
+            rotateX: -10,
+            duration: 0.55,
+            stagger: { each: 0.02, ease: "power2.in" },
+            ease: "expo.in",
+          },
+          "<0.05"
+        );
+      }
+      // Fallback si vue vide
+      if (items.length === 0 && texts.length === 0) onComplete();
+    }
+
+    if (currentMode === "list") {
+      const rows = document.querySelectorAll("[data-list-row]");
+      if (rows.length > 0) {
+        gsap.to(rows, {
+          y: "-60px",
+          // opacity: 0,
+          // clipPath: "inset(100% 0 0% 0)",
+          duration: 0.5,
+          stagger: { each: 0.04, from: "start" },
+          ease: "expo.in",
+          onComplete,
+        });
+      } else {
+        onComplete();
+      }
+    }
+  };
 
   const fetchProjects = async () => {
     try {
       const response = await fetch("/api/projects");
       if (response.ok) {
         const data = await response.json();
-
         setProjects(data);
-        console.log(data);
         setFilteredProjects(data);
       }
     } catch (err) {
@@ -150,21 +265,26 @@ export default function ProjectsPage() {
     }
   };
 
+  const getFiltered = (category) => {
+    if (category === "ALL") return projects;
+    return projects.filter((project) => {
+      const techs =
+        typeof project.technologies === "string"
+          ? JSON.parse(project.technologies)
+          : project.technologies;
+      return techs.some((tech) => tech.toUpperCase() === category);
+    });
+  };
+
   const filterProjects = (category) => {
     setSelectedCategory(category);
-    if (category === "ALL") {
-      setFilteredProjects(projects);
-    } else {
-      setFilteredProjects(
-        projects.filter((project) => {
-          const techs =
-            typeof project.technologies === "string"
-              ? JSON.parse(project.technologies)
-              : project.technologies;
-          return techs.some((tech) => tech.toUpperCase() === category);
-        }),
-      );
-    }
+    animateOut(() => setFilteredProjects(getFiltered(category)));
+  };
+
+  // ─── Changement de vue avec animation de sortie ───────────────────────────────
+  const changeViewMode = (newMode) => {
+    if (newMode === viewMode) return;
+    animateOut(() => setViewMode(newMode));
   };
 
   const getProjectImage = (project) => {
@@ -180,9 +300,7 @@ export default function ProjectsPage() {
   };
 
   const getCategoryCount = (category) => {
-    if (category === "ALL") {
-      return projects.length;
-    }
+    if (category === "ALL") return projects.length;
     return projects.filter((project) => {
       const techs =
         typeof project.technologies === "string"
@@ -193,33 +311,33 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className=" bg-white pt-24">
+    <div className="bg-white pt-24 no-scrollbar">
       <Navbar />
 
       <div className="">
         {/* Sidebar Left - Categories */}
         <div className="flex px-12 justify-between">
-          <div className="gap-4 flex">
+          <div className="gap-4 flex overflow-hidden">
             {CATEGORIES.map((category) => (
               <Button
                 key={category}
+                data-filter-button
                 onClick={() => filterProjects(category)}
                 variant={selectedCategory === category ? "primary" : "ghost"}
                 size="sm"
               >
                 <span>{category}</span>
-                <span className="ml-1"> ({getCategoryCount(category)})</span>
+                <span className="ml-1">({getCategoryCount(category)})</span>
               </Button>
             ))}
           </div>
 
-          {/* Divider */}
-
-          <div className="gap-2 flex">
+          <div className="gap-2 flex overflow-hidden">
             {VIEW_MODES.map((mode) => (
               <Button
                 key={mode.id}
-                onClick={() => setViewMode(mode.id)}
+                data-view-mode-button
+                onClick={() => changeViewMode(mode.id)}
                 variant={viewMode === mode.id ? "primary" : "secondary"}
                 size="sm"
                 className="flex items-center gap-2"
@@ -233,47 +351,54 @@ export default function ProjectsPage() {
 
         {/* Main Content */}
         <div className="h-full flex-1 pt-12">
-          <div className=" ">
+          <div className="">
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-gray-600">Loading projects...</p>
               </div>
             ) : filteredProjects.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600">
-                  No projects found in this category.
-                </p>
+                <p className="text-gray-600">No projects found in this category.</p>
               </div>
             ) : (
               <>
-                {/* Grid View */}
+                {/* ── Grid View ── */}
                 {viewMode === "grid" && (
-                  <div className="uppercase grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6 ">
+                  <div className="uppercase no-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
                     {filteredProjects.map((project) => (
                       <TransitionLink
+                        data-grid-item
                         key={project.id}
                         href={`/projects/${project.slug}`}
                         className="group cursor-pointer"
                       >
-                        <div className="relative overflow-hidden bg-gray-100 aspect-square ">
+                        <div className="relative overflow-hidden aspect-square">
                           <img
+                            data-horizontal-item
                             src={getProjectImage(project)}
                             alt={project.title}
-                            className="w-full h-full  object-cover group-hover:scale-105 transition duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105"
                           />
                         </div>
-                        <h3 className="mt-2 ml-1 transition">
-                          {project.title}
-                        </h3>
-
+                        <div className="relative overflow-hidden">
+                          <h3
+                            data-horizontal-text
+                            className="mt-2 ml-1 transition"
+                          >
+                            {project.title}
+                          </h3>
+                        </div>
                       </TransitionLink>
                     ))}
                   </div>
                 )}
 
-                {/* Horizontal View */}
+                {/* ── Horizontal View ── */}
                 {viewMode === "horizontal" && (
-                  <div ref={horizontalScrollRef} className="uppercase flex w-screen overflow-hidden">
+                  <div
+                    ref={horizontalScrollRef}
+                    className="uppercase flex w-screen overflow-hidden no-scrollbar"
+                  >
                     {filteredProjects.map((project) => (
                       <TransitionLink
                         key={project.id}
@@ -281,23 +406,19 @@ export default function ProjectsPage() {
                         className="group h-full cursor-pointer flex flex-col shrink-0"
                       >
                         <div className="relative flex flex-col">
-                          <div
-                            className="h-[73vh] overflow-hidden w-96 "
-                          >
-
+                          <div className="h-[73vh] overflow-hidden w-96">
                             <img
                               data-horizontal-item
-
                               src={getProjectImage(project)}
                               alt={project.title}
-                              className="h-full  w-full object-cover group-hover:scale-105 "
+                              className="h-full w-full object-cover group-hover:scale-105"
                             />
                           </div>
                           <div className="relative overflow-hidden">
-
                             <h3
                               data-horizontal-text
-                              className="mt-2   ml-1 text-black " >
+                              className="mt-2 ml-1 text-black"
+                            >
                               {project.title}
                             </h3>
                           </div>
@@ -307,16 +428,16 @@ export default function ProjectsPage() {
                   </div>
                 )}
 
-                {/* List View */}
+                {/* ── List View ── */}
                 {viewMode === "list" && (
-                  <div className="w-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
+                  <div className="w-full overflo-hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
                     {/* Image centrale fixe */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140  overflow-hidden pointer-events-none z-10">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 overflow-hidden pointer-events-none z-10">
                       {filteredProjects.map((project, index) => (
                         <img
                           key={project.id}
                           id={`project-image-${index}`}
-                          className="absolute w-full h-full bg-white object-cover opacity-0 -opacity -300"
+                          className="absolute w-full h-full bg-white object-cover opacity-0 transition-opacity duration-300"
                           src={getProjectImage(project)}
                           alt={project.title}
                         />
@@ -324,54 +445,50 @@ export default function ProjectsPage() {
                     </div>
 
                     {filteredProjects.map((project, index) => (
-                      <TransitionLink
+                      <div
                         key={project.id}
-                        href={`/projects/${project.slug}`}
-                        className="group uppercase semibold  text-sm bg-white py-6 cursor-pointer flex gap-24 items-center  "
+                        className="group uppercase overflow-hidden "
                         onMouseEnter={() => {
-                          // Masquer toutes les images
                           filteredProjects.forEach((_, i) => {
-                            const img = document.getElementById(
-                              `project-image-${i}`,
-                            );
+                            const img = document.getElementById(`project-image-${i}`);
                             if (img) img.style.opacity = "0";
                           });
-                          // Afficher l'image du projet survolé
-                          const currentImg = document.getElementById(
-                            `project-image-${index}`,
-                          );
+                          const currentImg = document.getElementById(`project-image-${index}`);
                           if (currentImg) currentImg.style.opacity = "1";
                         }}
                         onMouseLeave={() => {
-                          // Masquer l'image au départ de la souris
-                          const currentImg = document.getElementById(
-                            `project-image-${index}`,
-                          );
+                          const currentImg = document.getElementById(`project-image-${index}`);
                           if (currentImg) currentImg.style.opacity = "0";
                         }}
                       >
-                        <div className="relative py-2 bg-white w-1/5 -ml-12">
-                          <h3 className="font-neue  ml-12">
-                            {"["}
-                            {index}
-                            {"]"}
-                          </h3>
-                          <div className=" bg-white -500 mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 duration-300 ease-in-out transition origin-left  absolute w-3/5 h-full top-0"></div>
-                        </div>
+                        <TransitionLink
+                                                data-list-row
 
-                        <h3 className="relative w-2/5">{project.title}</h3>
-                        <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">
-                          {project.client}
-                        </h3>
-                        <div className="relative py-2 bg-white w-1/5 justify-end flex -mr-12">
-                          <h3 className=" relative mr-12">
-                            {project.projectDate
-                              ? new Date(project.projectDate).getFullYear()
-                              : "N/A"}
+                          href={`/projects/${project.slug}`}
+                          className="cursor-pointer py-4 flex gap-24 bg-white items-center">
+                          <div className="relative py-2 bg-white w-1/5 -ml-12">
+                            <h3 className="font-neue ml-12">
+                              [{index}]
+                            </h3>
+                            <div className="bg-white mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 duration-300 ease-in-out transition origin-left absolute w-3/5 h-full top-0" />
+                          </div>
+
+                          <h3 className="relative z-20 text-white mix-blend-difference w-2/5">{project.title}</h3>
+                          <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">
+                            {project.client}
                           </h3>
-                          <div className=" right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0"></div>
-                        </div>
-                      </TransitionLink>
+
+                          <div className="relative py-2 bg-white w-1/5 justify-end flex -mr-12">
+                            <h3 className="relative mr-12">
+                              {project.projectDate
+                                ? new Date(project.projectDate).getFullYear()
+                                : "N/A"}
+                            </h3>
+                            <div className="right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0" />
+                          </div>
+                        </TransitionLink>
+
+                      </div>
                     ))}
                   </div>
                 )}
@@ -380,8 +497,6 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
-      {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
-
     </div>
   );
 }
