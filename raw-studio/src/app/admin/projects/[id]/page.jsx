@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Button from "@/components/Button";
+import OptionSelector from "@/components/OptionSelector";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
 import { TransitionLink } from "@/components/TransitionLink";
@@ -19,7 +20,7 @@ export default function EditProjectPage() {
     slug: "",
     shortDesc: "",
     longDesc: "",
-    categories: [],
+    categories: "",
     externalLink: "",
     featured: false,
   });
@@ -42,6 +43,7 @@ export default function EditProjectPage() {
   const fileInputRef = useRef(null);
   const overlayRef = useRef(null);
   const contentRef = useRef(null);
+  const textareaRef = useRef(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftRef = useRef(0);
@@ -66,23 +68,33 @@ export default function EditProjectPage() {
         if (response.ok) {
           const project = await response.json();
 
-          let cats = [];
+          let cats = "";
           if (project.technologies) {
-            const parsedTechs =
-              typeof project.technologies === "string"
-                ? JSON.parse(project.technologies)
-                : project.technologies;
-            cats = Array.isArray(parsedTechs) ? parsedTechs : [];
+            try {
+              const parsedTechs =
+                typeof project.technologies === "string"
+                  ? JSON.parse(project.technologies)
+                  : project.technologies;
+              cats = Array.isArray(parsedTechs) && parsedTechs.length > 0 ? parsedTechs[0] : "";
+            } catch (e) {
+              // Si le parse échoue, traiter comme une string simple
+              cats = typeof project.technologies === "string" ? project.technologies : "";
+            }
           }
 
           let imgs = [];
           if (project.images) {
-            imgs =
-              typeof project.images === "string"
-                ? JSON.parse(project.images)
-                : Array.isArray(project.images)
-                  ? project.images
-                  : [];
+            try {
+              imgs =
+                typeof project.images === "string"
+                  ? JSON.parse(project.images)
+                  : Array.isArray(project.images)
+                    ? project.images
+                    : [];
+            } catch (e) {
+              // Si le parse échoue, initialiser un array vide
+              imgs = [];
+            }
           }
 
           setProject(project);
@@ -153,7 +165,10 @@ export default function EditProjectPage() {
       targetScrollLeft.current += e.deltaY * 2;
       // Recalcul dynamique du max à chaque event
       const max = el.scrollWidth - el.clientWidth;
-      targetScrollLeft.current = Math.max(0, Math.min(targetScrollLeft.current, max));
+      targetScrollLeft.current = Math.max(
+        0,
+        Math.min(targetScrollLeft.current, max),
+      );
 
       if (!animating.current) {
         animating.current = true;
@@ -172,39 +187,17 @@ export default function EditProjectPage() {
     return () => document.removeEventListener("click", handleClick);
   }, []);
 
+  // Auto-resize textarea for longDesc
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [formData.longDesc]);
+
   const isInitialLoad = useRef(true);
-
-  // // Scroll vers la dernière image seulement quand l'user upload (pas au chargement)
-  // useEffect(() => {
-  //   if (isInitialLoad.current) {
-  //     isInitialLoad.current = false;
-  //     return;
-  //   }
-
-  //   const el = pageRef.current;
-  //   if (!el || uploadedImages.length === 0) return;
-
-  //   requestAnimationFrame(() => {
-  //     const max = el.scrollWidth - el.clientWidth;
-  //     targetScrollLeft.current = max;
-  //     animating.current = true;
-
-  //     const smoothScroll = () => {
-  //       const el = pageRef.current;
-  //       if (!el) return;
-  //       const diff = targetScrollLeft.current - el.scrollLeft;
-  //       if (Math.abs(diff) < 0.5) {
-  //         el.scrollLeft = targetScrollLeft.current;
-  //         animating.current = false;
-  //         return;
-  //       }
-  //       el.scrollLeft += diff * 0.08;
-  //       requestAnimationFrame(smoothScroll);
-  //     };
-
-  //     smoothScroll();
-  //   });
-  // }, [uploadedImages]);
+;
 
   // Drag and drop handlers for reorder modal
   const handleReorderDragStart = (e, index) => {
@@ -233,7 +226,7 @@ export default function EditProjectPage() {
     // Calculer la position finale de l'image déplacée après le splice
     let finalIndex = targetIndex;
     if (draggedIndex < targetIndex) {
-      finalIndex = targetIndex - 1;  // L'enlèvement décale la position
+      finalIndex = targetIndex - 1; // L'enlèvement décale la position
     }
 
     setUploadedImages((prev) => {
@@ -278,15 +271,6 @@ export default function EditProjectPage() {
     }));
   };
 
-  const handleCategoryChange = (category) => {
-    setFormData((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category],
-    }));
-  };
-
   // Image handlers
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -327,7 +311,10 @@ export default function EditProjectPage() {
     if (index > 0) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index - 1]] = [newArray[index - 1], newArray[index]];
+        [newArray[index], newArray[index - 1]] = [
+          newArray[index - 1],
+          newArray[index],
+        ];
         return newArray;
       });
       // Suivre l'image sélectionnée
@@ -344,7 +331,10 @@ export default function EditProjectPage() {
     if (index < uploadedImages.length - 1) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+        [newArray[index], newArray[index + 1]] = [
+          newArray[index + 1],
+          newArray[index],
+        ];
         return newArray;
       });
       // Suivre l'image sélectionnée
@@ -405,7 +395,7 @@ export default function EditProjectPage() {
     input.onchange = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      
+
       setUploading(true);
       setError("");
 
@@ -478,61 +468,66 @@ export default function EditProjectPage() {
     }
   };
 
-if (loading) {
-  return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white">
-      {/* Nav skeleton */}
-      <nav className="flex w-full justify-between items-center px-12 mt-12 shrink-0">
-        <div className="h-8 w-20 bg-gray-200  animate-pulse" />
-        <div className="h-8 w-16 bg-gray-200  animate-pulse" />
-      </nav>
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden bg-white">
+        {/* Nav skeleton */}
+        <nav className="flex w-full justify-between items-center px-12 mt-12 shrink-0">
+          <div className="h-8 w-20 bg-gray-200  animate-pulse" />
+          <div className="h-8 w-16 bg-gray-200  animate-pulse" />
+        </nav>
 
-      <div className="flex flex-1 overflow-hidden pt-[36px]">
-        {/* Left column skeleton */}
-        <div className="w-fit fixed left-0 px-12 flex flex-col justify-start z-10">
-          {/* Title */}
-          <div className="h-5 w-48 bg-gray-200  animate-pulse mb-8" />
+        <div className="flex flex-1 overflow-hidden pt-[36px]">
+          {/* Left column skeleton */}
+          <div className="w-fit fixed left-0 px-12 flex flex-col justify-start z-10">
+            {/* Title */}
+            <div className="h-5 w-48 bg-gray-200  animate-pulse mb-8" />
 
-          <div className="flex gap-4">
-            {/* Labels */}
-            <div className="uppercase space-y-4">
-              {["client", "slug", "short desc", "information"].map((label) => (
-                <div key={label} className="h-4 w-16 bg-gray-100  animate-pulse" />
-              ))}
+            <div className="flex gap-4">
+              {/* Labels */}
+              <div className="uppercase space-y-4">
+                {["client", "slug", "short desc", "information"].map(
+                  (label) => (
+                    <div
+                      key={label}
+                      className="h-4 w-16 bg-gray-100  animate-pulse"
+                    />
+                  ),
+                )}
+              </div>
+              {/* Values */}
+              <div className="space-y-4">
+                {[140, 180, 120, 140].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-4 bg-gray-200  animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
             </div>
-            {/* Values */}
-            <div className="space-y-4">
-              {[140, 180, 120, 140].map((w, i) => (
-                <div
-                  key={i}
-                  className="h-4 bg-gray-200  animate-pulse"
-                  style={{ width: `${w}px` }}
-                />
-              ))}
+
+            {/* Upload + Save */}
+            <div className="mt-8 pt-4 border-t border-gray-200 space-y-3">
+              <div className="h-4 w-32 bg-gray-200  animate-pulse" />
+              <div className="h-8 w-20 bg-gray-200  animate-pulse" />
             </div>
           </div>
 
-          {/* Upload + Save */}
-          <div className="mt-8 pt-4 border-t border-gray-200 space-y-3">
-            <div className="h-4 w-32 bg-gray-200  animate-pulse" />
-            <div className="h-8 w-20 bg-gray-200  animate-pulse" />
+          {/* Images area skeleton */}
+          <div className="flex ml-140 h-full">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="shrink-0 h-full bg-gray-100 animate-pulse"
+                style={{ width: "100vw", opacity: 1 - i * 0.2 }}
+              />
+            ))}
           </div>
-        </div>
-
-        {/* Images area skeleton */}
-        <div className="flex ml-140 h-full">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="shrink-0 h-full bg-gray-100 animate-pulse"
-              style={{ width: "100vw", opacity: 1 - i * 0.2 }}
-            />
-          ))}
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   if (error && !project) {
     return (
@@ -540,7 +535,10 @@ if (loading) {
         <div className="pt-20 px-6 pb-12">
           <div className="max-w-5xl mx-auto">
             <div className="mb-8">
-              <Link href="/admin" className="text-blue-600 hover:underline text-sm">
+              <Link
+                href="/admin"
+                className="text-blue-600 hover:underline text-sm"
+              >
                 ← Back to Admin
               </Link>
             </div>
@@ -555,25 +553,22 @@ if (loading) {
     <form
       onSubmit={handleSubmit}
       ref={pageRef}
-      className="flex pb-12 pt-[122px] relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
+      className="flex pb-12 pt-30.5 relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* Navbar */}
-<nav className="flex   top-0 fixed w-full justify-between items-center px-12 mt-12">
-<Button variant="secondary" href="/admin">
-Cancel
-</Button>
-<div className="flex gap-3">
-
-<Button type="submit" disabled={saving || uploading}>
-Save
-</Button>
-</div>
-</nav>
+      <nav className="flex   top-0 fixed w-full justify-between items-center px-12 mt-12">
+        <Button variant="secondary" href="/admin">
+          Cancel
+        </Button>
+        <div className="flex gap-3">
+          <Button type="submit" disabled={saving || uploading}>
+            Save
+          </Button>
+        </div>
+      </nav>
       {/* LEFT COLUMN - fixe */}
       <div className="w-fit z-20 bg--300 fixed left-0 shrink-0 h-full text-whte mix-blnd-difference px-12  flex flex-col justify-start z-10">
-       
-
         <h1 className="  font-bold mb-8 leading-tight">
           <input
             type="text"
@@ -618,82 +613,29 @@ Save
               className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
               placeholder="Short description"
             />
-            {/* <div className="flex gap-0 flex-wrap text-xs border border-gray-300 p-1 w-fit">
-              {["COMMERCIAL", "MUSIC VIDEO", "WEB"].map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`px-4 py-2 transition ${
-                    formData.categories.includes(cat)
-                      ? "bg-black text-white"
-                      : "bg-white text-gray-400 hover:text-gray-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div> */}
+
             <textarea
+              ref={textareaRef}
               name="longDesc"
               value={formData.longDesc}
               onChange={handleChange}
-              rows="8"
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none"
+              rows="1"
+              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none overflow-hidden"
               placeholder="Full description"
             />
-        
           </div>
         </div>
 
-    <div className="flex gap-0 text-xs border border-gray-300 p-1 w-fit bg-white relative">
-                {(() => {
-                  const options = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
-                  const BTN_W = 114; // px
-                  const PAD = 4; // container padding
-                  const selectedIndex = formData.categories.length > 0 ? options.indexOf(formData.categories[0]) : -1;
-                  const targetIndex = hoverIndex !== null ? hoverIndex : (selectedIndex !== -1 ? selectedIndex : 0);
-
-                  return (
-                    <>
-                      {options.map((cat, idx) => {
-                        const isUnderSlider = targetIndex === idx;
-                        const isSelectedBtn = selectedIndex === idx;
-                        const textClass = isUnderSlider
-                          ? "text-white"
-                          : isSelectedBtn
-                          ? "text-black"
-                          : "text-gray-400";
-
-                        return (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => handleCategoryChange(cat)}
-                            onMouseEnter={() => setHoverIndex(idx)}
-                            onMouseLeave={() => setHoverIndex(null)}
-                            className={`w-[114px] py-2 relative z-10 transition-colors duration-200 ${textClass}`}
-                          >
-                            {cat}
-                          </button>
-                        );
-                      })}
-
-                      {/* slider background */}
-                      <div
-                        className="absolute h-8 bg-black z-0"
-                        style={{
-                          width: `${BTN_W}px`,
-                          left: `${PAD + targetIndex * BTN_W}px`,
-                          top: `4px`,
-                          transition: "left 0.28s ease-out",
-                        }}
-                      />
-                    </>
-                  );
-                })()}
-              </div>
-  
+      
+          <OptionSelector
+            options={["COMMERCIAL", "MUSIC VIDEO", "WEB"]}
+            selectedValue={formData.categories}
+            onValueChange={(categories) =>
+              setFormData({ ...formData, categories })
+            }
+            isSingleSelect={true}
+          />
+      
       </div>
 
       {/* IMAGES */}
@@ -721,7 +663,7 @@ Save
                   draggable={false}
                   onContextMenu={(e) => handleImageContextMenu(e, idx)}
                 />
-             
+
                 {/* Action Bar - visible quand l'image est sélectionnée */}
                 {selectedImageIndex === idx && selectedImagePosition && (
                   <div
@@ -742,10 +684,19 @@ Save
                       className="p-2 hover:bg-gray-100  disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire reculer"
                     >
-                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M8.33333 15.8334L2.5 10.0001M2.5 10.0001L8.33333 4.16675M2.5 10.0001L17.5 10.0001" stroke="#414651" strokeWidth="1.66667"/>
-</svg>
-
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8.33333 15.8334L2.5 10.0001M2.5 10.0001L8.33333 4.16675M2.5 10.0001L17.5 10.0001"
+                          stroke="#414651"
+                          strokeWidth="1.66667"
+                        />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -757,10 +708,19 @@ Save
                       className="p-2 hover:bg-gray-100  disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire avancer"
                     >
-                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11.6667 15.8332L17.5 9.99984M17.5 9.99984L11.6667 4.1665M17.5 9.99984L2.5 9.99984" stroke="#414651" strokeWidth="1.66667"/>
-</svg>
-
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11.6667 15.8332L17.5 9.99984M17.5 9.99984L11.6667 4.1665M17.5 9.99984L2.5 9.99984"
+                          stroke="#414651"
+                          strokeWidth="1.66667"
+                        />
+                      </svg>
                     </button>
                     <div className="w-px bg-gray-300"></div>
                     <button
@@ -772,10 +732,19 @@ Save
                       className="p-2 hover:bg-gray-100  transition"
                       title="Dupliquer"
                     >
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M7.52702 4.20054V1.68213H18.3604V12.5155H15.8589M12.4738 7.485H1.64048V18.3183H12.4738V7.485Z" stroke="#414651" stroke-width="1.66667"/>
-</svg>
-
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M7.52702 4.20054V1.68213H18.3604V12.5155H15.8589M12.4738 7.485H1.64048V18.3183H12.4738V7.485Z"
+                          stroke="#414651"
+                          stroke-width="1.66667"
+                        />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -786,10 +755,19 @@ Save
                       className="p-2 hover:bg-gray-100  transition"
                       title="Remplacer"
                     >
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.75 5.68941L13.8766 2.5L17.5 6.06514L7.375 16.0245L2.5 17.5L3.75164 12.8283L10.75 5.68941ZM10.75 5.68941L14.3734 9.25454" stroke="#414651" stroke-width="1.66667"/>
-</svg>
-
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10.75 5.68941L13.8766 2.5L17.5 6.06514L7.375 16.0245L2.5 17.5L3.75164 12.8283L10.75 5.68941ZM10.75 5.68941L14.3734 9.25454"
+                          stroke="#414651"
+                          stroke-width="1.66667"
+                        />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -800,14 +778,23 @@ Save
                       className="p-2 hover:bg-red-100 text-red-600  transition"
                       title="Supprimer"
                     >
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M4.75 7.2561V17.5H15.25V7.2561M6.625 5.42683H2.5M6.625 5.42683L8.17188 2.5H12.3438L13.375 5.42683M6.625 5.42683H13.375M17.5 5.42683H13.375M11.5 8.35366V14.939M8.5 8.35366V14.939" stroke="#414651" stroke-width="1.66667"/>
-</svg>
-
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4.75 7.2561V17.5H15.25V7.2561M6.625 5.42683H2.5M6.625 5.42683L8.17188 2.5H12.3438L13.375 5.42683M6.625 5.42683H13.375M17.5 5.42683H13.375M11.5 8.35366V14.939M8.5 8.35366V14.939"
+                          stroke="#414651"
+                          stroke-width="1.66667"
+                        />
+                      </svg>
                     </button>
                   </div>
                 )}
-                
+
                 <button
                   type="button"
                   onClick={(e) => {
@@ -819,32 +806,43 @@ Save
                   ✕
                 </button>
                 {/* Image counter */}
-              
               </div>
             ))}
             {/* Upload section after images */}
-            <div  className="shrink-0 h-full w-120 px-12 bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
+            <div className="shrink-0 h-full w-120 px-12 bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
               <span className="text-center">
                 <p className="text-sm">Drag and drop an image, or Browse</p>
-                <p className="text-xs mt-2">Minimum 1600px width recommended Max 10MB each (20 for videos)</p>
-                <Button variant="secondary" className="mt-4" onClick={() => fileInputRef?.current?.click()}>
+                <p className="text-xs mt-2">
+                  Minimum 1600px width recommended Max 10MB each (20 for videos)
+                </p>
+                <Button
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={() => fileInputRef?.current?.click()}
+                >
                   Browse files
                 </Button>
               </span>
             </div>
           </>
         ) : (
-          <div  className="shrink-0 h-full w-screen flex flex-col bg-gray-100 items-center justify-center text-gray-400">
-            <span className="text-center">
+            <div className="shrink-0 h-full w-120 px-12 bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
+            
+              <span className="text-center">
               <p className="text-sm">No images</p>
-              <p className="text-xs mt-2">Upload images to get started</p>
-            </span>
-            <Button variant="secondary" className="mt-4" onClick={() => fileInputRef?.current?.click()}>
-              Browse files
-            </Button>
+                             <p className="text-xs mt-2">Upload images to get started</p>
+
+                <Button
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={() => fileInputRef?.current?.click()}
+                >
+                  Browse files
+                </Button>
+              </span>
           </div>
         )}
-       
+
         {/* Reorder Modal */}
         {isReorderModalOpen && (
           <div
@@ -859,7 +857,9 @@ Save
               onClick={(e) => e.stopPropagation()}
             >
               <div className="h-full">
-                <h2 className="text-xl font-bold mb-6 uppercase">Réorganiser</h2>
+                <h2 className="text-xl font-bold mb-6 uppercase">
+                  Réorganiser
+                </h2>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {uploadedImages.map((img, idx) => (
                     <div
@@ -877,9 +877,7 @@ Save
                             : "border-gray-300 hover:border-gray-400"
                       }`}
                     >
-                      <div className="text-2xl text-gray-400">
-                        ≡
-                      </div>
+                      <div className="text-2xl text-gray-400">≡</div>
                       <img
                         src={img}
                         alt={`Image ${idx + 1}`}
@@ -981,7 +979,7 @@ Save
       </div>
 
       {/* <Transition primaryColor="#000000" secondaryColor="#ffffff" /> */}
-      
+
       <input
         ref={fileInputRef}
         type="file"

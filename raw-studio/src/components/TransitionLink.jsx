@@ -3,11 +3,13 @@
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useTransition } from "@/context/TransitionContext";
+import { usePageAnimation } from "@/context/PageAnimationContext";
 
 export function TransitionLink({ className, href, children, onClick, ...props }) {
   const router = useRouter();
   const pathname = usePathname();
   const { triggerExit } = useTransition();
+  const pageAnimation = usePageAnimation();
 
   const handleClick = (e) => {
     if (onClick) onClick(e);
@@ -20,11 +22,17 @@ export function TransitionLink({ className, href, children, onClick, ...props })
     }
 
     e.preventDefault();
-    triggerExit();
 
-    setTimeout(() => {
-      router.push(href);
-    }, 0);
+    // Si on est dans une page avec animation de sortie locale, l'utiliser
+    if (pageAnimation?.onAnimateOut) {
+      pageAnimation.onAnimateOut(() => router.push(href));
+    } else {
+      // Sinon, utiliser l'animation globale
+      triggerExit();
+      setTimeout(() => {
+        router.push(href);
+      }, 1200);
+    }
   };
 
   return (

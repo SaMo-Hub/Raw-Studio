@@ -178,7 +178,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="pl-56  min-h-screen flex bg-white">
       <Sidebar />
       <div className="px-6 py-4">
         <div className=" mx-auto">
@@ -364,7 +364,14 @@ export default function AdminDashboard() {
                   <div>
                     <span className="inline-block uppercase text-xs px-3 py-1 bg-black text-white rounded-full font-medium">
                       {project.technologies
-                        ? JSON.parse(project.technologies)[0]
+                        ? (() => {
+                            try {
+                              const techs = JSON.parse(project.technologies);
+                              return Array.isArray(techs) && techs.length > 0 ? techs[0] : "—";
+                            } catch {
+                              return project.technologies || "—";
+                            }
+                          })()
                         : "—"}
                     </span>
                   </div>

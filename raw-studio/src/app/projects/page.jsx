@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
 import Lenis from "lenis";
@@ -8,6 +9,7 @@ import Button from "@/components/Button";
 import Navbar from "@/components/Navbar";
 import { Transition } from "@/components/Transition";
 import { TransitionLink } from "@/components/TransitionLink";
+import { PageAnimationProvider } from "@/context/PageAnimationContext";
 
 const CATEGORIES = ["ALL", "COMMERCIAL", "MUSIC VIDEO", "WEB"];
 
@@ -59,6 +61,7 @@ const VIEW_MODES = [
 ];
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -268,11 +271,19 @@ export default function ProjectsPage() {
   const getFiltered = (category) => {
     if (category === "ALL") return projects;
     return projects.filter((project) => {
-      const techs =
-        typeof project.technologies === "string"
-          ? JSON.parse(project.technologies)
-          : project.technologies;
-      return techs.some((tech) => tech.toUpperCase() === category);
+      try {
+        const techs =
+          typeof project.technologies === "string"
+            ? JSON.parse(project.technologies)
+            : project.technologies;
+        if (Array.isArray(techs)) {
+          return techs.some((tech) => tech.toUpperCase() === category);
+        }
+        return false;
+      } catch {
+        // Handle plain string format (legacy data)
+        return project.technologies?.toUpperCase?.() === category;
+      }
     });
   };
 
@@ -285,6 +296,11 @@ export default function ProjectsPage() {
   const changeViewMode = (newMode) => {
     if (newMode === viewMode) return;
     animateOut(() => setViewMode(newMode));
+  };
+
+  // ─── Navigation vers un projet avec animation de sortie ───────────────────────
+  const handleNavigateToProject = (slug) => {
+    animateOut(() => router.push(`/projects/${slug}`));
   };
 
   const getProjectImage = (project) => {
@@ -302,19 +318,28 @@ export default function ProjectsPage() {
   const getCategoryCount = (category) => {
     if (category === "ALL") return projects.length;
     return projects.filter((project) => {
-      const techs =
-        typeof project.technologies === "string"
-          ? JSON.parse(project.technologies)
-          : project.technologies;
-      return techs.some((tech) => tech.toUpperCase() === category);
+      try {
+        const techs =
+          typeof project.technologies === "string"
+            ? JSON.parse(project.technologies)
+            : project.technologies;
+        if (Array.isArray(techs)) {
+          return techs.some((tech) => tech.toUpperCase() === category);
+        }
+        return false;
+      } catch {
+        // Handle plain string format (legacy data)
+        return project.technologies?.toUpperCase?.() === category;
+      }
     }).length;
   };
 
   return (
-    <div className="bg-white pt-24 no-scrollbar">
-      <Navbar />
+    <PageAnimationProvider onAnimateOut={animateOut}>
+      <div className="bg-white pt-24 no-scrollbar">
+        <Navbar />
 
-      <div className="">
+        <div className="">
         {/* Sidebar Left - Categories */}
         <div className="flex px-12 justify-between">
           <div className="gap-4 flex overflow-hidden">
@@ -366,10 +391,14 @@ export default function ProjectsPage() {
                 {viewMode === "grid" && (
                   <div className="uppercase no-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
                     {filteredProjects.map((project) => (
-                      <TransitionLink
+                      <Link
                         data-grid-item
                         key={project.id}
-                        href={`/projects/${project.slug}`}
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigateToProject(project.slug);
+                        }}
                         className="group cursor-pointer"
                       >
                         <div className="relative overflow-hidden aspect-square">
@@ -388,7 +417,7 @@ export default function ProjectsPage() {
                             {project.title}
                           </h3>
                         </div>
-                      </TransitionLink>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -400,9 +429,13 @@ export default function ProjectsPage() {
                     className="uppercase flex w-screen overflow-hidden no-scrollbar"
                   >
                     {filteredProjects.map((project) => (
-                      <TransitionLink
+                      <Link
                         key={project.id}
-                        href={`/projects/${project.slug}`}
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavigateToProject(project.slug);
+                        }}
                         className="group h-full cursor-pointer flex flex-col shrink-0"
                       >
                         <div className="relative flex flex-col">
@@ -423,7 +456,7 @@ export default function ProjectsPage() {
                             </h3>
                           </div>
                         </div>
-                      </TransitionLink>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -461,10 +494,13 @@ export default function ProjectsPage() {
                           if (currentImg) currentImg.style.opacity = "0";
                         }}
                       >
-                        <TransitionLink
-                                                data-list-row
-
-                          href={`/projects/${project.slug}`}
+                        <Link
+                          data-list-row
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigateToProject(project.slug);
+                          }}
                           className="cursor-pointer py-4 flex gap-24 bg-white items-center">
                           <div className="relative py-2 bg-white w-1/5 -ml-12">
                             <h3 className="font-neue ml-12">
@@ -486,7 +522,7 @@ export default function ProjectsPage() {
                             </h3>
                             <div className="right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0" />
                           </div>
-                        </TransitionLink>
+                        </Link>
 
                       </div>
                     ))}
@@ -497,6 +533,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageAnimationProvider>
   );
 }

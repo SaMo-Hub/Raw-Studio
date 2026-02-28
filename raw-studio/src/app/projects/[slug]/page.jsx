@@ -135,12 +135,17 @@ export default function EditProjectPage() {
 
   }
 
-  const parsedImages =
-    typeof project.images === "string"
-      ? JSON.parse(project.images)
-      : Array.isArray(project.images)
-        ? project.images
-        : [];
+  let parsedImages = [];
+  try {
+    parsedImages =
+      typeof project.images === "string"
+        ? JSON.parse(project.images)
+        : Array.isArray(project.images)
+          ? project.images
+          : [];
+  } catch {
+    parsedImages = [];
+  }
 
   const images = parsedImages || [];
 
@@ -258,7 +263,13 @@ export default function EditProjectPage() {
               >
                 {project.technologies
                   ? typeof project.technologies === "string"
-                    ? JSON.parse(project.technologies).slice(0, 2).join(", ")
+                    ? (() => {
+                        try {
+                          return JSON.parse(project.technologies).slice(0, 2).join(", ");
+                        } catch {
+                          return project.technologies;
+                        }
+                      })()
                     : project.technologies.slice(0, 2).join(", ")
                   : "N/A"}
               </motion.p>

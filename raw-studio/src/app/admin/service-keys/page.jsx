@@ -5,9 +5,11 @@ import Link from "next/link";
 import Button from "@/components/Button";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Checkbox from "@/components/Checkbox";
+import OptionSelector from "@/components/OptionSelector";
 import ServiceKeyEditModal from "@/components/ServiceKeyEditModal";
 import StatusTag from "@/components/StatusTag";
 import { Sidebar } from "@/components/Sidebar";
+import CategorySelector from "@/components/CategorySelector";
 
 export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
@@ -343,11 +345,11 @@ export default function ServiceKeysPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-white">
+    <div className="min-h-screen pl-56 w-full flex bg-white">
             <Sidebar />
       
-      <div className="px-6 py-4">
-        <div className=" mx-">
+      <div className="px-6 w-full py-4">
+        <div className="w-full">
         <div className="flex items-center justify-between mb-12">
 
           {/* Titre */}
@@ -466,17 +468,14 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                   <label htmlFor="role" className="block text-xs font-medium mb-2 uppercase">
                     Role
                   </label>
-                  <select
-                    id="role"
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
+                  <OptionSelector
+                    options={["SERVICE", "ADMIN"]}
+                    selectedValue={formData.role}
+                    onValueChange={(role) =>
+                      setFormData({ ...formData, role })
                     }
-                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
-                  >
-                    <option value="SERVICE">Service</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
+                    isSingleSelect={true}
+                  />
                 </div>
                 <div>
                   <label htmlFor="name" className="block text-xs font-medium mb-2 uppercase">

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/Button";
+import OptionSelector from "@/components/OptionSelector";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -12,7 +13,8 @@ export default function NewProjectPage() {
   const contentRef = useRef(null);
   const targetScrollLeft = useRef(0);
   const animating = useRef(false);
-  
+  const textareaRef = useRef(null);
+
   const [uploadedImages, setUploadedImages] = useState([]);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [reorderItemIndex, setReorderItemIndex] = useState(null);
@@ -41,15 +43,6 @@ export default function NewProjectPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleCategoryChange = (category) => {
-    setFormData((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category],
     }));
   };
 
@@ -93,7 +86,10 @@ export default function NewProjectPage() {
     if (index > 0) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index - 1]] = [newArray[index - 1], newArray[index]];
+        [newArray[index], newArray[index - 1]] = [
+          newArray[index - 1],
+          newArray[index],
+        ];
         return newArray;
       });
     }
@@ -104,7 +100,10 @@ export default function NewProjectPage() {
     if (index < uploadedImages.length - 1) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+        [newArray[index], newArray[index + 1]] = [
+          newArray[index + 1],
+          newArray[index],
+        ];
         return newArray;
       });
     }
@@ -147,7 +146,7 @@ export default function NewProjectPage() {
     input.onchange = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      
+
       setUploading(true);
       setError("");
 
@@ -217,7 +216,7 @@ export default function NewProjectPage() {
     // Calculer la position finale de l'image déplacée après le splice
     let finalIndex = targetIndex;
     if (draggedIndex < targetIndex) {
-      finalIndex = targetIndex - 1;  // L'enlèvement décale la position
+      finalIndex = targetIndex - 1; // L'enlèvement décale la position
     }
 
     setUploadedImages((prev) => {
@@ -279,7 +278,10 @@ export default function NewProjectPage() {
       targetScrollLeft.current += e.deltaY * 2;
       // Recalcul dynamique du max à chaque event
       const max = el.scrollWidth - el.clientWidth;
-      targetScrollLeft.current = Math.max(0, Math.min(targetScrollLeft.current, max));
+      targetScrollLeft.current = Math.max(
+        0,
+        Math.min(targetScrollLeft.current, max),
+      );
 
       if (!animating.current) {
         animating.current = true;
@@ -298,7 +300,7 @@ export default function NewProjectPage() {
     return () => document.removeEventListener("click", handleClick);
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
     setSaving(true);
     setError("");
@@ -311,13 +313,14 @@ export default function NewProjectPage() {
           ...formData,
           images: uploadedImages,
           technologies: formData.categories,
+          isActive: !isDraft,
         }),
       });
 
       if (response.ok) {
         router.push("/admin");
       } else {
-        setError("Failed to create project");
+        setError(isDraft ? "Failed to save draft" : "Failed to create project");
       }
     } catch (err) {
       setError("An error occurred");
@@ -326,35 +329,49 @@ export default function NewProjectPage() {
       setSaving(false);
     }
   };
-
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [formData.longDesc]);
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={(e) => handleSubmit(e, false)}
       ref={pageRef}
-      className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
+      className="flex pb-12 pt-30.5 relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* Navbar */}
-      <nav className="flex z-20 fixed w-full justify-between items-center px-12 mt-4">
+    
+      <nav className="flex   top-0 fixed w-full justify-between items-center px-12 mt-12">
         <Button variant="secondary" href="/admin">
           Cancel
         </Button>
         <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            type="button"
+            disabled={saving}
+            onClick={(e) => handleSubmit(e, true)}
+          >
+            Save as draft
+          </Button>
           <Button type="submit" disabled={saving}>
             Create
           </Button>
         </div>
       </nav>
-
       {/* LEFT COLUMN - fixe */}
-      <div className="w-140 fixed left-0 top-0 shrink-0 h-full px-12 py-16 flex flex-col justify-start z-10">
-        <h1 className="text-2xl font-bold mb-8 leading-tight">
+      <div className="w-fit z-20 bg--300 fixed left-0 shrink-0 h-full text-whte mix-blnd-difference px-12  flex flex-col justify-start z-10">
+        <h1 className="  font-bold mb-8 leading-tight">
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="bg-transparent w-full focus:outline-none"
+            className="bg-transparent border-b border-transparent focus:border-gray-400 uppercase w-full focus:outline-none"
             placeholder="Project title"
           />
         </h1>
@@ -391,338 +408,314 @@ export default function NewProjectPage() {
               className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
               placeholder="Short description"
             />
+         
             <textarea
+              ref={textareaRef}
               name="longDesc"
               value={formData.longDesc}
               onChange={handleChange}
-              rows="8"
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none"
+              rows="1"
+              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none overflow-hidden"
               placeholder="Full description"
             />
-            <div className="flex gap-2 flex-wrap text-xs">
-              {["COMMERCIAL", "MUSIC VIDEO", "WEB"].map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`px-2 py-1 border rounded transition ${
-                    formData.categories.includes(cat)
-                      ? "bg-gray-600 text-white border-gray-600"
-                      : "border-gray-400 text-gray-600 hover:border-gray-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <input
-              type="url"
-              name="externalLink"
-              value={formData.externalLink}
-              onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
-              placeholder="External link (optional)"
-            />
+           
           </div>
+          
         </div>
 
-        <div className="mt-8 space-y-4 border-t border-gray-400 pt-4">
-          <label className="block text-xs uppercase tracking-wide text-gray-600 hover:text-black transition cursor-pointer">
-            <span>{uploading ? "Uploading..." : "+ Upload Images"}</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition inline-block border border-gray-300 px-4 py-2 rounded disabled:opacity-50"
-          >
-            {saving ? "Creating..." : "Create"}
-          </button>
-
-          {error && <p className="text-xs text-red-600">{error}</p>}
-        </div>
+          <OptionSelector
+            options={["COMMERCIAL", "MUSIC VIDEO", "WEB"]}
+            selectedValue={formData.categories}
+            onValueChange={(categories) =>
+              setFormData({ ...formData, categories })
+            }
+            isSingleSelect={true}
+          />
       </div>
 
       {/* MAIN AREA - vide */}
-     <div className="flex  py-20 ml-140 shrink-0 relative">
-             {uploadedImages.length > 0 ? (
-               <>
-                 {uploadedImages.map((img, idx) => (
-                   <div
-                     key={idx}
-                     className={`shrink-0 flex relative group h-full transition-all cursor-pointer ${
-                       selectedImageIndex === idx ? "ring-4 ring-blue-500" : ""
-                     }`}
-                     style={{ width: "100vw" }}
-                     onClick={(e) => {
-                       const rect = e.currentTarget.getBoundingClientRect();
-                       const y = e.clientY - rect.top;
-                       const x = e.clientX - rect.left;
-                       setSelectedImageIndex(idx);
-                       setSelectedImagePosition({ x, y });
-                     }}
-                   >
-                     <img
-                       className="h-full w-full object-cover"
-                       src={img}
-                       alt=""
-                       draggable={false}
-                       onContextMenu={(e) => handleImageContextMenu(e, idx)}
-                     />
-                  
-                     {/* Action Bar - visible quand l'image est sélectionnée */}
-                     {selectedImageIndex === idx && selectedImagePosition && (
-                       <div
-                         className="absolute bg-white border border-gray-300 rounded shadow-lg flex gap-2 px-3 py-2 z-40"
-                         style={{
-                           top: `${selectedImagePosition.y}px`,
-                           left: `${selectedImagePosition.x}px`,
-                           transform: "translate(-50%, -50%)",
-                         }}
-                       >
-                         <button
-                           type="button"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             moveImageUp(idx);
-                           }}
-                           disabled={idx === 0}
-                           className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
-                           title="Faire reculer"
-                         >
-                           ←
-                         </button>
-                         <button
-                           type="button"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             moveImageDown(idx);
-                           }}
-                           disabled={idx === uploadedImages.length - 1}
-                           className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
-                           title="Faire avancer"
-                         >
-                           →
-                         </button>
-                         <div className="w-px bg-gray-300"></div>
-                         <button
-                           type="button"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             duplicateImage(idx);
-                           }}
-                           className="p-2 hover:bg-gray-100 rounded transition"
-                           title="Dupliquer"
-                         >
-                           ⎘
-                         </button>
-                         <button
-                           type="button"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             replaceImage(idx);
-                           }}
-                           className="p-2 hover:bg-gray-100 rounded transition"
-                           title="Remplacer"
-                         >
-                           🖊
-                         </button>
-                         <button
-                           type="button"
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             removeImage(idx);
-                           }}
-                           className="p-2 hover:bg-red-100 text-red-600 rounded transition"
-                           title="Supprimer"
-                         >
-                           🗑
-                         </button>
-                       </div>
-                     )}
-                     
-                     <button
-                       type="button"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         removeImage(idx);
-                       }}
-                       className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
-                     >
-                       ✕
-                     </button>
-                     {/* Image counter */}
-                     <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded text-xs">
-                       {idx + 1} / {uploadedImages.length}
-                     </div>
-                   </div>
-                 ))}
-                 {/* Upload section after images */}
-                 <div  className="shrink-0 h-full w-screen bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
-                   <span className="text-center">
-                     <p className="text-sm">Drag and drop an image, or Browse</p>
-                     <p className="text-xs mt-2">Minimum 1600px width recommended Max 10MB each (20 for videos)</p>
-                     <Button variant="secondary" className="mt-4" onClick={() => fileInputRef?.current?.click()}>
-                       Browse files
-                     </Button>
-                   </span>
-                 </div>
-               </>
-             ) : (
-               <div  className="shrink-0 h-full w-screen flex flex-col bg-gray-100 items-center justify-center text-gray-400">
-                 <span className="text-center">
-                   <p className="text-sm">No images</p>
-                   <p className="text-xs mt-2">Upload images to get started</p>
-                 </span>
-                 <Button variant="secondary" className="mt-4" onClick={() => fileInputRef?.current?.click()}>
-                   Browse files
-                 </Button>
-               </div>
-             )}
+      <div className="flex h-full  ml-140 shrink-0 relative">
+        {uploadedImages.length > 0 ? (
+          <>
+            {uploadedImages.map((img, idx) => (
+              <div
+                key={idx}
+                className={`shrink-0 flex relative group h-full transition-all cursor-pointer ${
+                  selectedImageIndex === idx ? "ring-4 ring-blue-500" : ""
+                }`}
+                style={{ width: "100vw" }}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const y = e.clientY - rect.top;
+                  const x = e.clientX - rect.left;
+                  setSelectedImageIndex(idx);
+                  setSelectedImagePosition({ x, y });
+                }}
+              >
+                <img
+                  className="h-full w-full object-cover"
+                  src={img}
+                  alt=""
+                  draggable={false}
+                  onContextMenu={(e) => handleImageContextMenu(e, idx)}
+                />
+
+                {/* Action Bar - visible quand l'image est sélectionnée */}
+                {selectedImageIndex === idx && selectedImagePosition && (
+                  <div
+                    className="absolute bg-white border border-gray-300 rounded shadow-lg flex gap-2 px-3 py-2 z-40"
+                    style={{
+                      top: `${selectedImagePosition.y}px`,
+                      left: `${selectedImagePosition.x}px`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImageUp(idx);
+                      }}
+                      disabled={idx === 0}
+                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      title="Faire reculer"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImageDown(idx);
+                      }}
+                      disabled={idx === uploadedImages.length - 1}
+                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      title="Faire avancer"
+                    >
+                      →
+                    </button>
+                    <div className="w-px bg-gray-300"></div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateImage(idx);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded transition"
+                      title="Dupliquer"
+                    >
+                      ⎘
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        replaceImage(idx);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded transition"
+                      title="Remplacer"
+                    >
+                      🖊
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(idx);
+                      }}
+                      className="p-2 hover:bg-red-100 text-red-600 rounded transition"
+                      title="Supprimer"
+                    >
+                      🗑
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeImage(idx);
+                  }}
+                  className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
+                >
+                  ✕
+                </button>
+                {/* Image counter */}
+                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded text-xs">
+                  {idx + 1} / {uploadedImages.length}
+                </div>
+              </div>
+            ))}
+            {/* Upload section after images */}
+            <div className="shrink-0 h-full w-120 px-12 bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
+              <span className="text-center">
+                <p className="text-sm">Drag and drop an image, or Browse</p>
+                <p className="text-xs mt-2">
+                  Minimum 1600px width recommended Max 10MB each (20 for videos)
+                </p>
+                <Button
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={() => fileInputRef?.current?.click()}
+                >
+                  Browse files
+                </Button>
+              </span>
+            </div>
+          </>
+        ) : (
+           <div className="shrink-0 h-full w-120 px-12 bg-gray-100 border border-gray-200 border-dashed flex items-center justify-center text-gray-400">
             
-             {/* Reorder Modal */}
-             {isReorderModalOpen && (
-               <div
-                 className="fixed inset-0 flex p-4 items-center justify-end z-50"
-                 ref={overlayRef}
-                 onClick={() => setIsReorderModalOpen(false)}
-               >
-                 <div className="top-0 left-0 bg-black/50 w-full h-full absolute z-0"></div>
-                 <div
-                   ref={contentRef}
-                   className="bg-white p-8 z-10 w-full max-w-md flex flex-col justify-between h-full overflow-y-auto will-change-transform"
-                   onClick={(e) => e.stopPropagation()}
-                 >
-                   <div className="h-full">
-                     <h2 className="text-xl font-bold mb-6 uppercase">Réorganiser</h2>
-                     <div className="space-y-2 max-h-96 overflow-y-auto">
-                       {uploadedImages.map((img, idx) => (
-                         <div
-                           key={idx}
-                           draggable
-                           onDragStart={(e) => handleReorderDragStart(e, idx)}
-                           onDragOver={(e) => handleReorderDragOver(e, idx)}
-                           onDragLeave={handleReorderDragLeave}
-                           onDrop={(e) => handleReorderDrop(e, idx)}
-                           className={`flex items-center gap-3 p-3 border rounded transition cursor-grab active:cursor-grabbing ${
-                             draggedIndex === idx
-                               ? "opacity-50 border-gray-400 bg-gray-50"
-                               : dragOverIndex === idx
-                                 ? "bg-blue-50 border-blue-400"
-                                 : "border-gray-300 hover:border-gray-400"
-                           }`}
-                         >
-                           <div className="text-2xl text-gray-400">
-                             ≡
-                           </div>
-                           <img
-                             src={img}
-                             alt={`Image ${idx + 1}`}
-                             className="w-12 h-12 object-cover rounded"
-                             draggable="false"
-                           />
-                           <div className="flex-1">
-                             <p className="text-sm font-medium">Image {idx + 1}</p>
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                   <div className="mt-6 flex gap-3">
-                     <Button
-                       variant="secondary"
-                       onClick={() => setIsReorderModalOpen(false)}
-                       className="w-full"
-                     >
-                       Fermer
-                     </Button>
-                   </div>
-                 </div>
-               </div>
-             )}
-     
-             {/* Context Menu */}
-             {contextMenu && (
-               <div
-                 className="fixed bg-white border uppercase  z-50 text-xs"
-                 style={{
-                   top: `${contextMenu.y}px`,
-                   left: `${contextMenu.x}px`,
-                 }}
-               >
-                 {[
-                   {
-                     label: "Remplacer",
-                     onClick: () => replaceImage(contextMenu.index),
-                     disabled: false,
-                   },
-                   {
-                     label: "Dupliquer",
-                     onClick: () => duplicateImage(contextMenu.index),
-                     disabled: false,
-                   },
-                   {
-                     label: "Réorganiser",
-                     onClick: () => {
-                       setReorderItemIndex(contextMenu.index);
-                       setIsReorderModalOpen(true);
-                       setContextMenu(null);
-                     },
-                     disabled: false,
-                   },
-                   {
-                     label: "Faire reculer",
-                     onClick: () => moveImageUp(contextMenu.index),
-                     disabled: contextMenu.index === 0,
-                   },
-                   {
-                     label: "Faire avancer",
-                     onClick: () => moveImageDown(contextMenu.index),
-                     disabled: contextMenu.index === uploadedImages.length - 1,
-                   },
-                   {
-                     label: "Première position",
-                     onClick: () => moveImageToFirst(contextMenu.index),
-                     disabled: contextMenu.index === 0,
-                   },
-                   {
-                     label: "Dernière position",
-                     onClick: () => moveImageToLast(contextMenu.index),
-                     disabled: contextMenu.index === uploadedImages.length - 1,
-                   },
-                   {
-                     label: "Supprimer",
-                     onClick: () => removeImage(contextMenu.index),
-                     disabled: false,
-                     isDelete: true,
-                   },
-                 ].map((action, idx, arr) => (
-                   <button
-                     key={idx}
-                     type="button"
-                     onClick={action.onClick}
-                     disabled={action.disabled}
-                     className={`block w-full uppercase text-left p-4 -2 py-2 ${
-                       action.isDelete
-                         ? "hover:bg-red-100 text-red-600"
-                         : "hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                     }`}
-                   >
-                     {action.label}
-                   </button>
-                 ))}
-               </div>
-             )}
-           </div>
+              <span className="text-center">
+              <p className="text-sm">No images</p>
+                             <p className="text-xs mt-2">Upload images to get started</p>
+
+                <Button
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={() => fileInputRef?.current?.click()}
+                >
+                  Browse files
+                </Button>
+              </span>
+          </div>
+        )}
+
+        {/* Reorder Modal */}
+        {isReorderModalOpen && (
+          <div
+            className="fixed inset-0 flex p-4 items-center justify-end z-50"
+            ref={overlayRef}
+            onClick={() => setIsReorderModalOpen(false)}
+          >
+            <div className="top-0 left-0 bg-black/50 w-full h-full absolute z-0"></div>
+            <div
+              ref={contentRef}
+              className="bg-white p-8 z-10 w-full max-w-md flex flex-col justify-between h-full overflow-y-auto will-change-transform"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="h-full">
+                <h2 className="text-xl font-bold mb-6 uppercase">
+                  Réorganiser
+                </h2>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {uploadedImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      draggable
+                      onDragStart={(e) => handleReorderDragStart(e, idx)}
+                      onDragOver={(e) => handleReorderDragOver(e, idx)}
+                      onDragLeave={handleReorderDragLeave}
+                      onDrop={(e) => handleReorderDrop(e, idx)}
+                      className={`flex items-center gap-3 p-3 border rounded transition cursor-grab active:cursor-grabbing ${
+                        draggedIndex === idx
+                          ? "opacity-50 border-gray-400 bg-gray-50"
+                          : dragOverIndex === idx
+                            ? "bg-blue-50 border-blue-400"
+                            : "border-gray-300 hover:border-gray-400"
+                      }`}
+                    >
+                      <div className="text-2xl text-gray-400">≡</div>
+                      <img
+                        src={img}
+                        alt={`Image ${idx + 1}`}
+                        className="w-12 h-12 object-cover rounded"
+                        draggable="false"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Image {idx + 1}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsReorderModalOpen(false)}
+                  className="w-full"
+                >
+                  Fermer
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Context Menu */}
+        {contextMenu && (
+          <div
+            className="fixed bg-white border uppercase  z-50 text-xs"
+            style={{
+              top: `${contextMenu.y}px`,
+              left: `${contextMenu.x}px`,
+            }}
+          >
+            {[
+              {
+                label: "Remplacer",
+                onClick: () => replaceImage(contextMenu.index),
+                disabled: false,
+              },
+              {
+                label: "Dupliquer",
+                onClick: () => duplicateImage(contextMenu.index),
+                disabled: false,
+              },
+              {
+                label: "Réorganiser",
+                onClick: () => {
+                  setReorderItemIndex(contextMenu.index);
+                  setIsReorderModalOpen(true);
+                  setContextMenu(null);
+                },
+                disabled: false,
+              },
+              {
+                label: "Faire reculer",
+                onClick: () => moveImageUp(contextMenu.index),
+                disabled: contextMenu.index === 0,
+              },
+              {
+                label: "Faire avancer",
+                onClick: () => moveImageDown(contextMenu.index),
+                disabled: contextMenu.index === uploadedImages.length - 1,
+              },
+              {
+                label: "Première position",
+                onClick: () => moveImageToFirst(contextMenu.index),
+                disabled: contextMenu.index === 0,
+              },
+              {
+                label: "Dernière position",
+                onClick: () => moveImageToLast(contextMenu.index),
+                disabled: contextMenu.index === uploadedImages.length - 1,
+              },
+              {
+                label: "Supprimer",
+                onClick: () => removeImage(contextMenu.index),
+                disabled: false,
+                isDelete: true,
+              },
+            ].map((action, idx, arr) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={action.onClick}
+                disabled={action.disabled}
+                className={`block w-full uppercase text-left p-4 -2 py-2 ${
+                  action.isDelete
+                    ? "hover:bg-red-100 text-red-600"
+                    : "hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                }`}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </form>
   );
 }

@@ -135,13 +135,16 @@ className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col just
           <div className="flex gap-3 ">
            
             <Button
-              onClick={onClose}
+              onClick={handleClose}
               variant="secondary"
               className="w-full"
             >
               Cancel
             </Button>
-             <Button onClick={() => onSave(keyId) } className="w-full">
+             <Button onClick={async () => {
+              await handleClose();
+              onSave(keyId);
+            }} className="w-full">
               Save
             </Button>
           </div>

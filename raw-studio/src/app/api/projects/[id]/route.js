@@ -49,7 +49,7 @@ export async function PUT(request, context) {
         ...(longDesc && { longDesc }),
         ...(client && { client }),
         ...(images && { images: typeof images === "string" ? images : JSON.stringify(images) }),
-        ...(technologies && { technologies: typeof technologies === "string" ? technologies : JSON.stringify(technologies) }),
+        ...(technologies && { technologies: JSON.stringify(typeof technologies === "string" ? [technologies] : technologies) }),
         ...(externalLink !== undefined && { externalLink }),
         ...(featured !== undefined && { featured }),
         ...(displayOrder !== undefined && { displayOrder }),
