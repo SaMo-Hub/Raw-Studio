@@ -199,6 +199,7 @@ export default function ProjectsPage() {
   /**
    * Joue l'animation de sortie pour le mode courant, puis appelle onComplete.
    */
+
   const animateOut = (onComplete) => {
     const currentMode = viewModeRef.current;
 
@@ -225,7 +226,7 @@ export default function ProjectsPage() {
             y: "-120%",
             rotateX: -10,
             duration: 0.55,
-            stagger: { each: 0.02, ease: "power2.in" },
+            stagger: { each: 0.05, ease: "power2.in" },
             ease: "expo.in",
           },
           "<0.05"
@@ -337,7 +338,7 @@ export default function ProjectsPage() {
   return (
     <PageAnimationProvider onAnimateOut={animateOut}>
       <div className="bg-white pt-24 no-scrollbar">
-        <Navbar />
+        {/* <Navbar /> */}
 
         <div className="">
         {/* Sidebar Left - Categories */}
@@ -350,6 +351,7 @@ export default function ProjectsPage() {
                 onClick={() => filterProjects(category)}
                 variant={selectedCategory === category ? "primary" : "ghost"}
                 size="sm"
+                className="flex translate-y-22.5"
               >
                 <span>{category}</span>
                 <span className="ml-1">({getCategoryCount(category)})</span>
@@ -365,7 +367,7 @@ export default function ProjectsPage() {
                 onClick={() => changeViewMode(mode.id)}
                 variant={viewMode === mode.id ? "primary" : "secondary"}
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex translate-y-22.5  items-center gap-2"
                 title={mode.label}
               >
                 {mode.icon}
@@ -379,7 +381,7 @@ export default function ProjectsPage() {
           <div className="">
             {loading ? (
               <div className="text-center py-12">
-                <p className="text-gray-600">Loading projects...</p>
+                <p className="text-gray-600"></p>
               </div>
             ) : filteredProjects.length === 0 ? (
               <div className="text-center py-12">
@@ -444,7 +446,7 @@ export default function ProjectsPage() {
                               data-horizontal-item
                               src={getProjectImage(project)}
                               alt={project.title}
-                              className="h-full w-full object-cover group-hover:scale-105"
+                              className="h-full  w-full object-cover group-hover:scale-105"
                             />
                           </div>
                           <div className="relative overflow-hidden">

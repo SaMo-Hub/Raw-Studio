@@ -24,6 +24,7 @@ export default function EditProjectPage() {
     externalLink: "",
     featured: false,
   });
+
   const [uploading, setUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -472,10 +473,7 @@ export default function EditProjectPage() {
     return (
       <div className="flex flex-col h-screen overflow-hidden bg-white">
         {/* Nav skeleton */}
-        <nav className="flex w-full justify-between items-center px-12 mt-12 shrink-0">
-          <div className="h-8 w-20 bg-gray-200  animate-pulse" />
-          <div className="h-8 w-16 bg-gray-200  animate-pulse" />
-        </nav>
+       
 
         <div className="flex flex-1 overflow-hidden pt-[36px]">
           {/* Left column skeleton */}
@@ -557,16 +555,7 @@ export default function EditProjectPage() {
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* Navbar */}
-      <nav className="flex   top-0 fixed w-full justify-between items-center px-12 mt-12">
-        <Button variant="secondary" href="/admin">
-          Cancel
-        </Button>
-        <div className="flex gap-3">
-          <Button type="submit" disabled={saving || uploading}>
-            Save
-          </Button>
-        </div>
-      </nav>
+  
       {/* LEFT COLUMN - fixe */}
       <div className="w-fit z-20 bg--300 fixed left-0 shrink-0 h-full text-whte mix-blnd-difference px-12  flex flex-col justify-start z-10">
         <h1 className="  font-bold mb-8 leading-tight">

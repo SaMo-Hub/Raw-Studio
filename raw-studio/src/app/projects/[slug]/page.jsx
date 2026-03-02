@@ -159,7 +159,7 @@ export default function EditProjectPage() {
       className="flex h-screen overflow-x-scroll overflow-y-hidden bg-white"
       style={{ cursor: "grab", scrollbarWidth: "none" }}
     >
-      <Navbar />
+      {/* <Navbar /> */}
 
       {/* LEFT COLUMN - Texte */}
       <div className="w-140 fixed z-20 shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
