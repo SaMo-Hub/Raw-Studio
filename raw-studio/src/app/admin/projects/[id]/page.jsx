@@ -551,13 +551,23 @@ export default function EditProjectPage() {
     <form
       onSubmit={handleSubmit}
       ref={pageRef}
-      className="flex pb-12 pt-30.5 relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
+      className="flex  relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* Navbar */}
-  
+   <nav className="flex z-20 top-0 fixed w-full justify-between items-center px-6 mt-6">
+        <Button variant="secondary" href="/admin">
+          Cancel
+        </Button>
+        <div className="flex gap-3">
+         
+          <Button type="submit" disabled={saving}>
+            save
+          </Button>
+        </div>
+      </nav>
       {/* LEFT COLUMN - fixe */}
-      <div className="w-fit z-20 bg--300 fixed left-0 shrink-0 h-full text-whte mix-blnd-difference px-12  flex flex-col justify-start z-10">
+      <div className=" bg-white pt-30 w-[338px] fixed left-0 shrink-0 h-full text-black  px-6  flex flex-col justify-start z-10">
         <h1 className="  font-bold mb-8 leading-tight">
           <input
             type="text"
@@ -577,7 +587,7 @@ export default function EditProjectPage() {
             {/* <p>Type</p> */}
             <p>information</p>
           </div>
-          <div className="space-y-4 flex flex-col">
+          <div className="space-y-4 w-full flex flex-col">
             <input
               type="text"
               name="client"
@@ -609,7 +619,7 @@ export default function EditProjectPage() {
               value={formData.longDesc}
               onChange={handleChange}
               rows="1"
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400 resize-none overflow-hidden"
+              className="bg-transparent focus:outline-none w-full border-b border-transparent focus:border-gray-400 resize-none overflow-hidden"
               placeholder="Full description"
             />
           </div>
@@ -628,7 +638,7 @@ export default function EditProjectPage() {
       </div>
 
       {/* IMAGES */}
-      <div className="flex   ml-140 shrink-0 relative">
+      <div className="flex h-full ml-140 shrink-0 relative">
         {uploadedImages.length > 0 ? (
           <>
             {uploadedImages.map((img, idx) => (

@@ -319,8 +319,14 @@ export default function AdminDashboard() {
               {getSortedProjects().map((project, index) => (
                 <div
                   key={project.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/admin/projects/${project.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") router.push(`/admin/projects/${project.id}`);
+                  }}
                   className={`grid grid-cols-6 gap-4 items-center p-4 
-                    border-b border-gray-200 transition ${
+                    border-b border-gray-200 transition cursor-pointer ${
                       selectedProjects.has(project.id)
                         ? "bg-gray-100"
                         : "hover:bg-gray-50"
@@ -328,10 +334,12 @@ export default function AdminDashboard() {
                 >
                   {/* Image & Name */}
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={selectedProjects.has(project.id)}
-                      onChange={() => handleSelectProject(project.id)}
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedProjects.has(project.id)}
+                        onChange={() => handleSelectProject(project.id)}
+                      />
+                    </div>
                     {(() => {
                       try {
                         const images =
@@ -391,16 +399,19 @@ export default function AdminDashboard() {
 
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-4">
-                    <ToggleSwitch
-                      isActive={project.isActive}
-                      onChange={(newStatus) =>
-                        handleToggleActive(project.id, !newStatus)
-                      }
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ToggleSwitch
+                        isActive={project.isActive}
+                        onChange={(newStatus) =>
+                          handleToggleActive(project.id, !newStatus)
+                        }
+                      />
+                    </div>
                     <Link
                       href={`/admin/projects/${project.id}`}
                       className="text-gray-600 hover:text-black transition"
                       title="Edit"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <svg
                         width="16"
@@ -417,7 +428,10 @@ export default function AdminDashboard() {
                       </svg>
                     </Link>
                     <button
-                      onClick={() => handleDelete(project.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(project.id);
+                      }}
                       className="text-gray-600 hover:text-red-600 transition"
                       title="Delete"
                     >

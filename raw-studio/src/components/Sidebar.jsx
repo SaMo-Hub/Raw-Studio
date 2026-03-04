@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
+import { TransitionLink } from "./TransitionLink";
 
 export const Sidebar = () => {
   const pathname = usePathname();
@@ -28,7 +29,8 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
+    // Use window.location for logout to skip animation (full page reload)
+    window.location.href = "/";
   };
 
   const isActive = (path) => pathname === path;
@@ -37,7 +39,7 @@ export const Sidebar = () => {
     <div className="fixed left-0 top-0 h-screen min-w-56 z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
       <div className="px-6 py-6 border-b border-gray-200">
-        <Link href="/projects" className="text-xl font-bold tracking-tight uppercase">
+        <TransitionLink href="/projects" className="text-xl font-bold tracking-tight uppercase">
           <svg
             width="51"
             height="23"
@@ -51,12 +53,12 @@ export const Sidebar = () => {
             />
             <path d="M51 18.864H46.7568V23H51V18.864Z" fill="black" />
           </svg>
-        </Link>
+        </TransitionLink>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-8 space-y-2">
-        <Link
+        <TransitionLink
           href="/admin"
           className={` px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
             isActive("/admin")
@@ -75,8 +77,8 @@ export const Sidebar = () => {
               Project
             </span>
           </span>
-        </Link>
-        <Link
+        </TransitionLink>
+        <TransitionLink
           href="/admin/service-keys"
           className={` px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
             isActive("/admin/service-keys")
@@ -95,7 +97,7 @@ export const Sidebar = () => {
               Password
             </span>
           </span>
-        </Link>
+        </TransitionLink>
       </nav>
 
       {/* Logout & User */}

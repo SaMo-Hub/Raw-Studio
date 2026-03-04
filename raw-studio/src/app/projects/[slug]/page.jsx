@@ -162,25 +162,8 @@ export default function EditProjectPage() {
       {/* <Navbar /> */}
 
       {/* LEFT COLUMN - Texte */}
-      <div className="w-140 fixed z-20 shrink-0 h-full text-white mix-blend-difference px-12 py-16 flex flex-col justify-start">
-        <div className="overflow-hidden mb-12 block">
-          <motion.div
-            initial={{ translateY: "100%" }}
-            animate={{ translateY: 0 }}
-            transition={{
-              delay: 1.1,
-              duration: 0.8,
-              ease: "easeOut",
-            }}
-          >
-            <Link
-              href="/"
-              className="text-xs uppercase tracking-wide text-gray-600 hover:text-black transition block"
-            >
-              ← Back
-            </Link>
-          </motion.div>
-        </div>
+      <div className=" fixed z-20 shrink-0 h-full text-black bg-white px-6 w-[338px] py-30 flex flex-col justify-start">
+      
 
         <h1 className=" overflow-hidden uppercase font-bold mb-8 leading-tight">
           <motion.span
@@ -284,9 +267,9 @@ export default function EditProjectPage() {
               </motion.p>
             </div>
           </div>
+          
         </div>
-
-        {isAdmin && (
+  {isAdmin && (
           <div className="overflow-hidden">
             <motion.div
               initial={{ translateY: "100%" }}
@@ -302,6 +285,7 @@ export default function EditProjectPage() {
             </motion.div>
           </div>
         )}
+      
       </div>
 
       <motion.div
@@ -309,7 +293,7 @@ export default function EditProjectPage() {
         animate={{ clipPath: "inset(0% 0% 0% 0%)" }}
               transition={{ duration: 1.2, ease: [0.9, 0, 0.1, 1] }}
 
-className="flex   ml-140 shrink-0 relative"      >
+className="flex   ml-122 shrink-0 relative"      >
 
         {images.map((img, index) => (
           <img
