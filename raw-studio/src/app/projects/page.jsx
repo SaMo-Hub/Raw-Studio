@@ -200,8 +200,9 @@ export default function ProjectsPage() {
    * Joue l'animation de sortie pour le mode courant, puis appelle onComplete.
    */
 
-  const animateOut = (onComplete) => {
+  const animateOut = (onComplete, destination) => {
     const currentMode = viewModeRef.current;
+    const isNavigatingToRawSport = destination && destination.includes("/raw-sport");
 
     if (currentMode === "horizontal" || currentMode === "grid") {
       const items = document.querySelectorAll("[data-horizontal-item]");
@@ -209,6 +210,8 @@ export default function ProjectsPage() {
 
       const tl = gsap.timeline({ onComplete });
 
+      // Animer l'overlay noir qui monte (seulement si c'est vers raw-sport)
+     
       if (texts.length > 0) {
         tl.to(texts, {
           y: "-100%",
@@ -232,23 +235,61 @@ export default function ProjectsPage() {
           "<0.05"
         );
       }
+       if(isNavigatingToRawSport) {
+        const screenOverlay = document.querySelector("[data-screen-overlay-black]");
+        if (screenOverlay) {
+          tl.to(screenOverlay, {
+            y: "0%",
+            duration: 0.8,
+            ease: "expo.in",
+          
+          }, 0);
+        }
+      }
+
       // Fallback si vue vide
       if (items.length === 0 && texts.length === 0) onComplete();
     }
 
     if (currentMode === "list") {
       const rows = document.querySelectorAll("[data-list-row]");
+      const imageContainer = document.querySelector("[data-projects-image-container]");
+      
+      const tl = gsap.timeline({ onComplete });
+
+      // Animer l'overlay noir qui monte (seulement si c'est vers raw-sport)
+      if(isNavigatingToRawSport) {
+        const screenOverlay = document.querySelector("[data-screen-overlay-black]");
+        if (screenOverlay) {
+          tl.to(screenOverlay, {
+            y: "-100%",
+            duration: 0.8,
+            ease: "expo.in",
+          }, 0);
+        }
+      }
+      
       if (rows.length > 0) {
-        gsap.to(rows, {
+        tl.to(rows, {
           y: "-60px",
           // opacity: 0,
           // clipPath: "inset(100% 0 0% 0)",
           duration: 0.5,
           stagger: { each: 0.04, from: "start" },
           ease: "expo.in",
-          onComplete,
         });
-      } else {
+      }
+      
+      // Clear the image container after rows animation finishes
+      if (imageContainer) {
+        tl.to(imageContainer, {
+          opacity: 0,
+          duration: 0.6,
+          ease: "expo.in",
+        });
+      }
+      
+      if (rows.length === 0 && !imageContainer) {
         onComplete();
       }
     }
@@ -337,8 +378,15 @@ export default function ProjectsPage() {
 
   return (
     <PageAnimationProvider onAnimateOut={animateOut}>
-      <div className="bg-white pt-24 no-scrollbar">
-        {/* <Navbar /> */}
+      <div className="bg-white pt-24 no-scrollbar relative">
+        {/* Overlay noir pour la transition vers raw-sport */}
+        <div 
+          className="fixed inset-0 bg-black pointer-events-none z-50"
+          style={{ transform: "translateY(100%)" }}
+          data-screen-overlay-black
+        />
+        
+        <Navbar />
 
         <div className="">
         {/* Sidebar Left - Categories */}
@@ -360,6 +408,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="gap-2 flex overflow-hidden">
+            
             {VIEW_MODES.map((mode) => (
               <Button
                 key={mode.id}
@@ -467,7 +516,7 @@ export default function ProjectsPage() {
                 {viewMode === "list" && (
                   <div className="w-full overflo-hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
                     {/* Image centrale fixe */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 overflow-hidden pointer-events-none z-10">
+                    <div data-projects-image-container className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 overflow-hidden pointer-events-none z-10">
                       {filteredProjects.map((project, index) => (
                         <img
                           key={project.id}

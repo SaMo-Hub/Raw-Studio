@@ -59,3 +59,37 @@ model Project {
   @@index([isActive])
   @@index([displayOrder])
 }
+
+// Modèle pour les éléments de la homepage de raw-sport (3 carousels)
+model RawSportHomeItem {
+  id          String   @id @default(cuid())
+  imageName   String   // Nom de l'image
+  imageUrl    String   // URL de l'image
+  type        String   // "athletes", "press", ou "clubs"
+  isActive    Boolean  @default(true) // Statut (en ligne ou pas)
+  displayOrder Int     @default(0) // Ordre d'affichage
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+  @@index([isActive])
+  @@index([displayOrder])
+}
+
+// Modèle pour les éléments de la galerie de raw-sport
+model RawSportGalleryItem {
+  id          String   @id @default(cuid())
+  imageName   String   // Nom de l'image
+  imageUrl    String   // URL de l'image
+  category    String   // "photo", "graphic-design", "film"
+  isActive    Boolean  @default(true) // Statut (en ligne ou pas)
+  displayOrder Int     @default(0) // Ordre d'affichage
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@index([isActive])
+  @@index([displayOrder])
+}

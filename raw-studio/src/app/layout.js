@@ -27,7 +27,7 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} font-neue font-medium text-xs antialiased bg-white text-gray-900`} suppressHydrationWarning>
         <TransitionProvider>
           {/* <RootTransition /> */}
-          <Navbar />
+          {/* <Navbar /> */}
           <LenisWrapper>
             {children}
           </LenisWrapper>

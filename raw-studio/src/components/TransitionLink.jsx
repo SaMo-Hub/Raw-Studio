@@ -25,13 +25,13 @@ export function TransitionLink({ className, href, children, onClick, ...props })
 
     // Si on est dans une page avec animation de sortie locale, l'utiliser
     if (pageAnimation?.onAnimateOut) {
-      pageAnimation.onAnimateOut(() => router.push(href));
+      pageAnimation.onAnimateOut(() => router.push(href), href);
     } else {
       // Sinon, utiliser l'animation globale
       triggerExit();
       setTimeout(() => {
         router.push(href);
-      }, 1200);
+      }, 100);
     }
   };
 

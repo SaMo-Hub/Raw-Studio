@@ -29,11 +29,11 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    // Use window.location for logout to skip animation (full page reload)
     window.location.href = "/";
   };
 
   const isActive = (path) => pathname === path;
+  const isRawSportActive = pathname.startsWith("/admin/raw-sport");
 
   return (
     <div className="fixed left-0 top-0 h-screen min-w-56 z-10 w-56 bg-white border-r border-gray-200 flex flex-col">
@@ -57,47 +57,104 @@ export const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-8 space-y-2">
-        <TransitionLink
-          href="/admin"
-          className={` px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
-            isActive("/admin")
-              ? "bg-black text-white"
-              : "text-gray-700 hover:bg-gray-100"
-          }`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10.5049 4L12.6611 5.85156L12.9424 6.09277H21V20H3V4H10.5049Z" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-          <span className="relative block h-full overflow-hidden">
-            <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
-              Project
-            </span>
-            <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
-              Project
-            </span>
-          </span>
-        </TransitionLink>
-        <TransitionLink
-          href="/admin/service-keys"
-          className={` px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
-            isActive("/admin/service-keys")
-              ? "bg-black text-white"
-              : "text-gray-700 hover:bg-gray-100"
-          }`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.21429 11H12H16.7857M7.21429 11H3V22H21V11H16.7857M7.21429 11H16.7857M7.21429 11V6.78571C7.21429 4.14264 9.35692 2 12 2C14.6431 2 16.7857 4.14264 16.7857 6.78571V11" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-          <span className="relative block h-full overflow-hidden">
-            <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
-              Password
-            </span>
-            <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
-              Password
-            </span>
-          </span>
-        </TransitionLink>
+      <nav className="flex-1 px-4 py-8 space-y-6 overflow-y-auto">
+        {/* RAW STUDIO Section */}
+        <div>
+          <div className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Raw Studio
+          </div>
+          <div className="space-y-2 mt-3">
+            <TransitionLink
+              href="/admin"
+              className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
+                isActive("/admin") && !isRawSportActive
+                  ? "bg-black text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.5049 4L12.6611 5.85156L12.9424 6.09277H21V20H3V4H10.5049Z" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              <span className="relative block h-full overflow-hidden">
+                <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                  Project
+                </span>
+                <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                  Project
+                </span>
+              </span>
+            </TransitionLink>
+            <TransitionLink
+              href="/admin/service-keys"
+              className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
+                isActive("/admin/service-keys")
+                  ? "bg-black text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.21429 11H12H16.7857M7.21429 11H3V22H21V11H16.7857M7.21429 11H16.7857M7.21429 11V6.78571C7.21429 4.14264 9.35692 2 12 2C14.6431 2 16.7857 4.14264 16.7857 6.78571V11" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              <span className="relative block h-full overflow-hidden">
+                <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                  Password
+                </span>
+                <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                  Password
+                </span>
+              </span>
+            </TransitionLink>
+          </div>
+        </div>
+
+        {/* RAW+SPORT Section */}
+        <div>
+          <div className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Raw+Sport
+          </div>
+          <div className="space-y-2 mt-3">
+            <TransitionLink
+              href="/admin/raw-sport/home"
+              className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
+                isActive("/admin/raw-sport/home")
+                  ? "bg-black text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 2H21V12H3V2Z M3 14H12V22H3V14Z M14 14H21V22H14V14Z" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              <span className="relative block h-full overflow-hidden">
+                <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                  Home
+                </span>
+                <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                  Home
+                </span>
+              </span>
+            </TransitionLink>
+            <TransitionLink
+              href="/admin/raw-sport/gallery"
+              className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
+                isActive("/admin/raw-sport/gallery")
+                  ? "bg-black text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 3H22V19H2V3Z M5 6H9V12H5V6Z M12 6H16V12H12V6Z M5 14H9V18H5V14Z M12 14H16V18H12V14Z M19 6H21V12H19V6Z M19 14H21V18H19V14Z" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+              <span className="relative block h-full overflow-hidden">
+                <span className="block transition-transform duration-500 ease-out group-hover:-translate-y-full">
+                  Gallery
+                </span>
+                <span className="absolute block transition-transform duration-500 ease-out translate-y-full group-hover:translate-y-0 top-0 left-0 right-0">
+                  Gallery
+                </span>
+              </span>
+            </TransitionLink>
+          </div>
+        </div>
       </nav>
 
       {/* Logout & User */}

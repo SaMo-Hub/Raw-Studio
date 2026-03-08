@@ -22,17 +22,33 @@ export default function LoginPage() {
       [background, inputField, submitBtn],
       {
         // opacity: 0,
-        y: 100,
+        y: 60,
+        clipPath: "inset(0% 0% 100% 0%)",
       },
       {
         opacity: 1,
         y: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power2.out",
+        clipPath: "inset(0% 0% 0% 0%)",
+        duration: 1.0,
+        stagger: 0.15,
+        ease: "expo.out",
       }
     );
   }, []);
+
+  // Animation de sortie avant redirection
+  const animateOut = (onComplete) => {
+    const form = document.querySelector("[data-login-background]");
+    
+    gsap.to(form, {
+      // opacity: 0,
+      y: -60,
+      clipPath: "inset(100% 0% 0% 0%)",
+      duration: 0.8,
+      ease: "expo.in",
+      onComplete,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,20 +64,44 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // Rediriger selon le rôle
-        if (data.role === "ADMIN") {
-          router.push("/admin");
-        } else if (data.role === "SERVICE") {
-          router.push("/service");
-        } else {
-          router.push("/");
-        }
+        // Rediriger selon le rôle avec animation de sortie
+        const isRawSport = data.role === "SERVICE";
+        
+        const onAnimationComplete = () => {
+          if (data.role === "ADMIN") {
+            router.push("/admin");
+          } else if (data.role === "SERVICE") {
+            router.push("/raw-sport");
+          } else {
+            router.push("/");
+          }
+        };
+
+        // Animation de sortie du formulaire
+        animateOut(() => {
+          if (isRawSport) {
+            // Animation du fond noir montant pour raw-sport
+            const overlay = document.querySelector("[data-login-overlay]");
+            if (overlay) {
+              gsap.to(overlay, {
+                y: "0%",
+                duration: 0.9,
+                ease: "expo.in",
+                onComplete: onAnimationComplete,
+              });
+            } else {
+              onAnimationComplete();
+            }
+          } else {
+            onAnimationComplete();
+          }
+        });
       } else {
         setError("Invalid password. Try: admin123 or service123");
+        setLoading(false);
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -113,6 +153,13 @@ onSubmit={handleSubmit} className="flex h-fit overflow-hidden bg-black w-fit p-1
           <p>Password: <code className="bg-white px-2 py-1 rounded font-mono">admin123</code></p>
         </div> */}
       </div>
+
+      {/* Fond noir montant pour raw-sport */}
+      <div 
+        data-login-overlay
+        className="fixed inset-0 bg-black pointer-events-none"
+        style={{ transform: "translateY(100%)" }}
+      />
     </div>
   );
 }

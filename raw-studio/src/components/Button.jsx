@@ -4,6 +4,8 @@ import Link from "next/link";
 import React from "react";
 
 const Button = ({
+  id,
+  dark,
   children,
   text,
   href,
@@ -30,11 +32,11 @@ const Button = ({
 
   // Color variants with smooth transitions
   const variantStyles = {
-    primary: "bg-black text-white s transition-all duration-300",
-    secondary: "border bg-white border-gray-300 text-gray-900 s transition-all duration-300 ",
-    danger: "bg-red-600 text-white s transition-all duration-300",
-    success: "bg-green-600 text-white s transition-all duration-300",
-    ghost: "text-gray-900 transition-all duration-300 hover:bg-gray-100",
+    primary: dark ? "bg-white text-black transition-all duration-300 te border border-white" : "bg-black text-white s transition-all duration-300",
+    secondary: dark ? "border border-white bg-black text-white transition-all duration-300 hover:bg-white hover:text-black" : "border bg-white border-gray-300 text-gray-900 s transition-all duration-300 ",
+    danger: dark ? "bg-red-600 text-white transition-all duration-300 hover:bg-red-700 border border-red-600" : "bg-red-600 text-white s transition-all duration-300",
+    success: dark ? "bg-green-600 text-white transition-all duration-300 hover:bg-green-700 border border-green-600" : "bg-green-600 text-white s transition-all duration-300",
+    ghost: dark ? "text-white transition-all duration-300 hover:bg-neutral-800 hover:text-blac" : "text-gray-900 transition-all duration-300 hover:bg-gray-100",
   };
 
   const combinedClassName = `${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`;
@@ -63,6 +65,7 @@ const Button = ({
   // Regular button
   return (
     <button
+    id={id}
       type={type}
       onClick={onClick}
       disabled={disabled}
