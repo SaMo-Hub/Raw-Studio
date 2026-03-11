@@ -13,12 +13,31 @@ import { useRouter } from "next/navigation";
 
 
 function Carousel({ title, items, icon, gallery, description, reverse = false }) {
+  
   const scrollContainer = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const data = await response.json();
+        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "SERVICE")) {
+          setIsAuthorized(true);
+        } else {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/login");
+      }
+    };
+    checkAuth();
+  }, [router]);
   // Dupliquer les items pour créer une boucle infinie
   const duplicatedItems = items.length > 0 ? [...items, ...items, ...items] : [];
-
   useEffect(() => {
     const container = scrollContainer.current;
     if (!container || items.length === 0) return;

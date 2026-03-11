@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { imageName, imageUrl, type, isActive, displayOrder } = await request.json();
+    const { imageName, imageUrl, type, client, isActive, displayOrder } = await request.json();
 
     if (!imageName || !imageUrl || !type) {
       return Response.json({ error: "imageName, imageUrl, and type required" }, { status: 400 });
@@ -31,6 +31,7 @@ export async function POST(request) {
         imageName,
         imageUrl,
         type,
+        client: client || null,
         isActive: isActive !== undefined ? isActive : true,
         displayOrder: displayOrder || 0,
       },

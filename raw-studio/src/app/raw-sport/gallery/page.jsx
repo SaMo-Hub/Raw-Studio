@@ -14,7 +14,24 @@ export default function RawSportGalleryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const data = await response.json();
+        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "SERVICE")) {
+          setIsAuthorized(true);
+        } else {
+          setIsAuthorized(false);
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    };
+    checkAuth();
+  }, [router]);
   // ─── Animation de SORTIE ──────────────────────────────────────────────
   const animateOut = (onComplete, destination) => {
     const tl = gsap.timeline({ onComplete });
@@ -210,15 +227,17 @@ export default function RawSportGalleryPage() {
         
         <div className="px-10 py-20">
           {/* Back Button and Filter Buttons */}
-          <div className="gap-2 flex overflow-hidden mb-12">
+          {isAuthorized && (
+            <div className="gap-2 flex overflow-hidden mb-12">
             <TransitionLink
               href="/raw-sport"
               className="text-xs translate-y-[140%] uppercase tracking-wide text-gray-400 hover:text-white "
               data-gallery-back
-            >
+              >
               ← Back
             </TransitionLink>
-          </div>
+          </div>)
+            }
 
           <div className="gap-2 flex overflow-hidden mb-12" data-gallery-filter-container>
             {uniqueCategories.map((category) => (

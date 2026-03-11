@@ -66,6 +66,7 @@ model RawSportHomeItem {
   imageName   String   // Nom de l'image
   imageUrl    String   // URL de l'image
   type        String   // "athletes", "press", ou "clubs"
+  client      String?  // Nom du client
   isActive    Boolean  @default(true) // Statut (en ligne ou pas)
   displayOrder Int     @default(0) // Ordre d'affichage
   

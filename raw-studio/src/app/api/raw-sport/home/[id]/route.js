@@ -28,7 +28,7 @@ export async function PUT(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
-    const { imageName, imageUrl, type, isActive, displayOrder } = await request.json();
+    const { imageName, imageUrl, type, client, isActive, displayOrder } = await request.json();
 
     if (type && !["athletes", "press", "clubs"].includes(type)) {
       return Response.json({ error: "Invalid type. Must be 'athletes', 'press', or 'clubs'" }, { status: 400 });
@@ -40,6 +40,7 @@ export async function PUT(request, context) {
         ...(imageName && { imageName }),
         ...(imageUrl && { imageUrl }),
         ...(type && { type }),
+        ...(client !== undefined && { client: client || null }),
         ...(isActive !== undefined && { isActive }),
         ...(displayOrder !== undefined && { displayOrder }),
       },
