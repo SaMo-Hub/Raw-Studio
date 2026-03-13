@@ -77,8 +77,8 @@ const handleClose = async () => {
       </div>
       <div
         ref={contentRef}
-className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col justify-between h-full overflow-y-auto will-change-transform"
-        // onClick={(e) => e.stopPropagation()}
+        className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col justify-between h-full overflow-y-auto will-change-transform"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className=" h-full">
 
@@ -126,7 +126,10 @@ className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col just
               {["SERVICE", "ADMIN"].map((roleOption) => (
                 <button
                   key={roleOption}
-                  onClick={() => onRoleChange(roleOption)}
+                  onClick={(e) => {
+                    
+                    onRoleChange(roleOption);
+                  }}
                   className={`px-3 py-2 text-xs font-medium rounded transition-all ${
                     role === roleOption
                       ? "bg-black text-white"
@@ -151,7 +154,7 @@ className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col just
               Cancel
             </Button>
              <Button onClick={async () => {
-              onSave(keyId);
+              await onSave(keyId);
               await handleClose();
             }} className="w-full">
               Save
