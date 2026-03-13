@@ -9,12 +9,19 @@ import TextField from "@/components/TextField";
 import { Sidebar } from "@/components/Sidebar";
 import SelectField from "@/components/SelectField";
 import { ToastContainer } from "@/components/Toast";
+import EditModal from "@/components/EditModal";
+import CategorySelector from "@/components/CategorySelector";
 
 const CAROUSEL_TYPES = {
   athletes: "Sportifs de Raw Sport",
   press: "Relation de presse",
   clubs: "Club de foot",
 };
+
+const VIEW_MODE_OPTIONS = [
+  { value: "cards", label: "Carousel" },
+  { value: "table", label: "Tableau" },
+];
 
 // ─── Ghost image qui suit le curseur (via ref, zéro rerender) ───
 function DragGhost({ ghostRef }) {
@@ -55,7 +62,10 @@ function SortableGrid({
   onReorder,
   onToggleActive,
   onDelete,
+  isSelected,
   onEdit,
+  selectedItems,        // ← new
+  onSelectionChange,    // ← new
 }) {
   const [order, setOrder] = useState(() => items.map((i) => i.id));
   const [draggingId, setDraggingId] = useState(null);
@@ -252,6 +262,7 @@ function SortableGrid({
       >
         {orderedItems.map((item) => {
           const isDragging = draggingId === item.id;
+          const isSelected = selectedItems.has(item.id);
           return (
             <div
               key={item.id}
@@ -269,47 +280,61 @@ function SortableGrid({
               onPointerDown={(e) => handlePointerDown(e, item)}
             >
               <div className="aspect-square relative overflow-hidden">
-                <div className="bg-white z-20 h-6 w-6 flex items-center justify-center ml-2 mt-2 absolute opacity-60 group-hover:opacity-100 transition-opacity">
-                  <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                    <rect width="3" height="3" rx="1.5" fill="currentColor" />
-                    <rect
-                      x="5"
-                      width="3"
-                      height="3"
-                      rx="1.5"
-                      fill="currentColor"
-                    />
-                    <rect
-                      y="4.5"
-                      width="3"
-                      height="3"
-                      rx="1.5"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="5"
-                      y="4.5"
-                      width="3"
-                      height="3"
-                      rx="1.5"
-                      fill="currentColor"
-                    />
-                    <rect
-                      y="9"
-                      width="3"
-                      height="3"
-                      rx="1.5"
-                      fill="currentColor"
-                    />
-                    <rect
-                      x="5"
-                      y="9"
-                      width="3"
-                      height="3"
-                      rx="1.5"
-                      fill="currentColor"
-                    />
-                  </svg>
+                <div className="z-20 absolute ml-2 mt-2 gap-2 flex items-center justify-center ">
+
+                  <div className="bg-white  h-6 w-6 flex items-center justify-center  opacity-60 group-hover:opacity-100 transition-opacity">
+                    <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+                      <rect width="3" height="3" rx="1.5" fill="currentColor" />
+                      <rect
+                        x="5"
+                        width="3"
+                        height="3"
+                        rx="1.5"
+                        fill="currentColor"
+                      />
+                      <rect
+                        y="4.5"
+                        width="3"
+                        height="3"
+                        rx="1.5"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="5"
+                        y="4.5"
+                        width="3"
+                        height="3"
+                        rx="1.5"
+                        fill="currentColor"
+                      />
+                      <rect
+                        y="9"
+                        width="3"
+                        height="3"
+                        rx="1.5"
+                        fill="currentColor"
+                      />
+                      <rect
+                        x="5"
+                        y="9"
+                        width="3"
+                        height="3"
+                        rx="1.5"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </div>
+                  <Checkbox
+                    className={` group-hover:opacity-100 t ${isSelected ? "opacity-100 " : "opacity-0"}`}
+                    checked={isSelected}
+                    onChange={(e) => {
+                      const next = new Set(selectedItems);
+                      if (next.has(item.id)) next.delete(item.id);
+                      else next.add(item.id);
+                      onSelectionChange(next);
+                    }}
+
+                  />
                 </div>
                 <img
                   src={item.imageUrl}
@@ -342,28 +367,7 @@ function SortableGrid({
                         />
                       </svg>
                     </button>
-                    <button
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleActive(item.id, item.isActive);
-                      }}
-                      className="bg-white z-20 h-6 w-6 flex items-center justify-center hover:bg-gray-100 transition"
-                    >
-                      <svg
-                        className="w-4 h-5 text-gray-800"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
+
                     <button
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
@@ -442,12 +446,21 @@ export default function AdminRawSportHomePage() {
     press: true,
     clubs: true,
   });
+  const [bulkActionType, setBulkActionType] = useState("");
+  const [bulkActionClient, setBulkActionClient] = useState("");
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [bulkEditFormData, setBulkEditFormData] = useState({
+    type: "",
+    client: "",
+  });
   const buttonRefs = useRef({
     ALL: null,
     athletes: null,
     press: null,
     clubs: null,
   });
+  const tableRowRefs = useRef({});
+  const tableDragState = useRef(null);
 
   useEffect(() => {
     const button = buttonRefs.current[selectedType];
@@ -523,10 +536,9 @@ export default function AdminRawSportHomePage() {
           });
           return updated;
         });
-        setSuccess("Ordre sauvegardé");
       }
     } catch (err) {
-      setError("Erreur lors de la sauvegarde");
+      showToast("Erreur lors de la sauvegarde", "error");
     }
   }, []);
 
@@ -696,6 +708,176 @@ export default function AdminRawSportHomePage() {
     }
   };
 
+  const handleDeleteSelected = async () => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${selectedItems.size} élément(s)?`)) return;
+    try {
+      const responses = await Promise.all(
+        Array.from(selectedItems).map((id) =>
+          fetch(`/api/raw-sport/home/${id}`, { method: "DELETE" })
+        )
+      );
+      if (responses.every((r) => r.ok)) {
+        setItems((prev) => prev.filter((item) => !selectedItems.has(item.id)));
+        setSelectedItems(new Set());
+        showToast(`${selectedItems.size} élément(s) supprimé(s)`, "success");
+      }
+    } catch (err) {
+      showToast("Erreur lors de la suppression", "error");
+    }
+  };
+
+  const handleChangeTypeSelected = async () => {
+    if (!bulkActionType) {
+      showToast("Veuillez sélectionner un type", "error");
+      return;
+    }
+    try {
+      const responses = await Promise.all(
+        Array.from(selectedItems).map((id) =>
+          fetch(`/api/raw-sport/home/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: bulkActionType }),
+          })
+        )
+      );
+      if (responses.every((r) => r.ok)) {
+        setItems((prev) =>
+          prev.map((item) =>
+            selectedItems.has(item.id) ? { ...item, type: bulkActionType } : item
+          )
+        );
+        setSelectedItems(new Set());
+        setBulkActionType("");
+        showToast("Type modifié avec succès", "success");
+      }
+    } catch (err) {
+      showToast("Erreur lors de la modification", "error");
+    }
+  };
+
+  const handleChangeClientSelected = async () => {
+    if (!bulkActionClient.trim()) {
+      showToast("Veuillez entrer un client", "error");
+      return;
+    }
+    try {
+      const responses = await Promise.all(
+        Array.from(selectedItems).map((id) =>
+          fetch(`/api/raw-sport/home/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client: bulkActionClient }),
+          })
+        )
+      );
+      if (responses.every((r) => r.ok)) {
+        setItems((prev) =>
+          prev.map((item) =>
+            selectedItems.has(item.id) ? { ...item, client: bulkActionClient } : item
+          )
+        );
+        setSelectedItems(new Set());
+        setBulkActionClient("");
+        showToast("Client modifié avec succès", "success");
+      }
+    } catch (err) {
+      showToast("Erreur lors de la modification", "error");
+    }
+  };
+
+  const handleBulkEditSubmit = async () => {
+    try {
+      const updateData = {};
+      if (bulkEditFormData.type) updateData.type = bulkEditFormData.type;
+      if (bulkEditFormData.client) updateData.client = bulkEditFormData.client;
+
+      if (Object.keys(updateData).length === 0) {
+        showToast("Veuillez modifier au moins un champ", "error");
+        return;
+      }
+
+      const responses = await Promise.all(
+        Array.from(selectedItems).map((id) =>
+          fetch(`/api/raw-sport/home/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updateData),
+          })
+        )
+      );
+
+      if (responses.every((r) => r.ok)) {
+        setItems((prev) =>
+          prev.map((item) =>
+            selectedItems.has(item.id) ? { ...item, ...updateData } : item
+          )
+        );
+        setSelectedItems(new Set());
+        setBulkEditFormData({ type: "", client: "" });
+        setShowBulkEditModal(false);
+        showToast(`${selectedItems.size} élément(s) modifié(s) avec succès`, "success");
+      }
+    } catch (err) {
+      showToast("Erreur lors de la modification", "error");
+    }
+  };
+
+  // Table row drag handler
+  const handleTableRowPointerDown = (e, itemId, itemIndex) => {
+    if (e.button !== 0) return;
+    
+    const currentOrder = filteredItems.map(i => i.id);
+    let isDragging = false;
+    let startY = e.clientY;
+
+    const onMove = (ev) => {
+      if (!isDragging && Math.abs(ev.clientY - startY) < 5) return;
+      isDragging = true;
+
+      const rows = Object.values(tableRowRefs.current);
+      if (rows.length === 0) return;
+
+      // Find which row is under the cursor
+      const cursorY = ev.clientY;
+      let targetIndex = itemIndex;
+
+      for (let i = 0; i < rows.length; i++) {
+        const rect = rows[i].getBoundingClientRect();
+        if (cursorY < rect.top + rect.height / 2) {
+          targetIndex = i;
+          break;
+        } else if (i === rows.length - 1) {
+          targetIndex = i;
+        }
+      }
+
+      if (targetIndex !== itemIndex) {
+        const newOrder = [...currentOrder];
+        const item = newOrder.splice(itemIndex, 1)[0];
+        newOrder.splice(targetIndex, 0, item);
+        
+        setItems(prev => {
+          const itemsMap = new Map(prev.map(i => [i.id, i]));
+          return newOrder.map(id => itemsMap.get(id)).filter(Boolean);
+        });
+      }
+    };
+
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      
+      if (isDragging) {
+        const newOrder = filteredItems.map(i => i.id);
+        handleReorder(newOrder, selectedType || "ALL");
+      }
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
   const groupedItems = getGroupedItems();
 
   return (
@@ -793,21 +975,65 @@ export default function AdminRawSportHomePage() {
           )}
 
           {/* Toggle vue */}
-          <div className="mb-6 flex justify-end">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={`text-xs px-3 py-1.5 transition border ${viewMode === "cards" ? "bg-black text-white border-black" : "border-gray-300 hover:bg-gray-50"}`}
-              >
-                🎴 Cards
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                className={`text-xs px-3 py-1.5 transition border ${viewMode === "table" ? "bg-black text-white border-black" : "border-gray-300 hover:bg-gray-50"}`}
-              >
-                📋 Tableau
-              </button>
-            </div>
+          <div className="mt-8 mb-4 flex justify-between items-center">
+            <CategorySelector
+              border={false}
+              options={VIEW_MODE_OPTIONS}
+              selectedOption={viewMode}
+              onOptionChange={setViewMode}
+            />
+            {selectedItems.size > 0 && (
+              <div className="mb-6 bg-gray-100 borde border-gray-300 p-2 flex items-center justify-between gap-12">
+                <div className="flex items-center gap-4 flex-1">
+                  <span className="text-sm font-medium text-neutral-500 ">
+                    {selectedItems.size} (selected)
+                  </span>
+                  <div className="flex items-center gap-2">
+
+                    <button
+                      onClick={() => setShowBulkEditModal(true)}
+                      className="text-gray-600 hover:text-black transition text-sm"
+                      title="Edit"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13 6.15723L17.1688 1.83398L22 6.66654L8.5 20.1665L2 22.1665L3.66885 15.834L13 6.15723ZM13 6.15723L17.8312 10.9898"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleDeleteSelected}
+                      className="text-gray-600 hover:text-red-600 transition text-sm"
+                      title="Delete"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19 8.25V22.25H5V8.25M16.5 5.75H22M16.5 5.75L14.4375 1.75H8.875L7.5 5.75M16.5 5.75H7.5M2 5.75H7.5M10 9.75V18.75M14 9.75V18.75"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -822,7 +1048,7 @@ export default function AdminRawSportHomePage() {
             // ─── VUE TABLEAU ───
             <div className="text-sm">
               {filteredItems.length > 0 && (
-                <div className="mb-4 grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
+                <div className=" grid grid-cols-5 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={
@@ -849,7 +1075,9 @@ export default function AdminRawSportHomePage() {
                   <div>État</div>
                   {selectedItems.size > 0 ? (
                     <div className="flex items-center justify-end gap-2">
-                      <button
+                      <Button
+                        variant="success"
+                        size="sm"
                         onClick={() => {
                           for (const id of selectedItems)
                             handleToggleActive(
@@ -858,11 +1086,12 @@ export default function AdminRawSportHomePage() {
                                 ?.isActive,
                             );
                         }}
-                        className="px-3 py-1 bg-green-500 text-white text-xs hover:bg-green-600 transition"
                       >
                         Toggle ({selectedItems.size})
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => {
                           if (confirm("Êtes-vous sûr?")) {
                             for (const id of selectedItems)
@@ -870,22 +1099,44 @@ export default function AdminRawSportHomePage() {
                             setSelectedItems(new Set());
                           }
                         }}
-                        className="px-3 py-1 bg-red-500 text-white text-xs hover:bg-red-600 transition"
                       >
                         Delete ({selectedItems.size})
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-right">Actions</div>
                   )}
                 </div>
               )}
-              {filteredItems.map((item) => (
+              {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className={`grid grid-cols-5 gap-4 items-center p-4 border-b border-gray-200 transition ${selectedItems.has(item.id) ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                  ref={(el) => {
+                    if (el) tableRowRefs.current[index] = el;
+                  }}
+                  className={`grid grid-cols-5 gap-4 items-center p-4 border-b border-gray-200 transition cursor-grab ${selectedItems.has(item.id) ? "bg-blue-100 border-l-4 border-l-blue-500" : "hover:bg-gray-50"}`}
                 >
                   <div className="flex w-full overflow-hidden items-center gap-3">
+                    <div
+                      className="h-6 w-6 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing flex-shrink-0"
+                      onPointerDown={(e) => handleTableRowPointerDown(e, item.id, index)}
+                      title="Drag to reorder"
+                    >
+                      <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+                        <rect width="3" height="3" rx="1.5" fill="currentColor" />
+                        <rect
+                          x="5"
+                          width="3"
+                          height="3"
+                          rx="1.5"
+                          fill="currentColor"
+                        />
+                        <rect y="4.5" width="3" height="3" rx="1.5" fill="currentColor" />
+                        <rect x="5" y="4.5" width="3" height="3" rx="1.5" fill="currentColor" />
+                        <rect y="9" width="3" height="3" rx="1.5" fill="currentColor" />
+                        <rect x="5" y="9" width="3" height="3" rx="1.5" fill="currentColor" />
+                      </svg>
+                    </div>
                     <Checkbox
                       checked={selectedItems.has(item.id)}
                       onChange={() => {
@@ -1007,26 +1258,65 @@ export default function AdminRawSportHomePage() {
           ) : (
             // ─── VUE CARDS ───
             <div>
+
               {["athletes", "press", "clubs"].map((type) => {
                 const typeItems = groupedItems[type];
                 if (!typeItems?.length) return null;
+                const typeIds = new Set(typeItems.map((item) => item.id));
+                const selectedInType = Array.from(selectedItems).filter((id) =>
+                  typeIds.has(id)
+                );
+                const allSelectedInType =
+                  selectedInType.length === typeItems.length &&
+                  typeItems.length > 0;
+                const someSelectedInType =
+                  selectedInType.length > 0 &&
+                  selectedInType.length < typeItems.length;
+
+                const handleToggleTypeSelection = () => {
+                  if (allSelectedInType) {
+                    // Désélectionner tous les items du type
+                    const newSelected = new Set(selectedItems);
+                    typeIds.forEach((id) => newSelected.delete(id));
+                    setSelectedItems(newSelected);
+                  } else {
+                    // Sélectionner tous les items du type
+                    const newSelected = new Set(selectedItems);
+                    typeIds.forEach((id) => newSelected.add(id));
+                    setSelectedItems(newSelected);
+                  }
+                };
+
                 return (
                   <div key={type} className="mb-8">
                     <div
-                      className="flex items-center gap-1 mb-3 cursor-pointer group"
-                      onClick={() =>
-                        setExpandedTypes((prev) => ({
-                          ...prev,
-                          [type]: !prev[type],
-                        }))
-                      }
+                      className="flex items-center gap-2 mb-3 group"
                     >
                       <span
-                        className={`transition-transform text-xs ${expandedTypes[type] ? "rotate-90" : ""}`}
+                        onClick={() =>
+                          setExpandedTypes((prev) => ({
+                            ...prev,
+                            [type]: !prev[type],
+                          }))
+                        }
+                        className={`transition-transform text-xs cursor-pointer ${expandedTypes[type] ? "rotate-90" : ""}`}
                       >
                         ▶
                       </span>
-                      <h2 className=" -tight group-hover:text-gray-600 transition">
+                      <Checkbox
+                        checked={allSelectedInType}
+                        indeterminate={someSelectedInType}
+                        onChange={handleToggleTypeSelection}
+                      />
+                      <h2
+                        onClick={() =>
+                          setExpandedTypes((prev) => ({
+                            ...prev,
+                            [type]: !prev[type],
+                          }))
+                        }
+                        className="cursor-pointer -tight group-hover:text-gray-600 transition"
+                      >
                         {CAROUSEL_TYPES[type]}
                         <span className="ml-1 font-normal text-gray-400">
                           ({typeItems.length})
@@ -1041,6 +1331,8 @@ export default function AdminRawSportHomePage() {
                         onToggleActive={handleToggleActive}
                         onDelete={handleDeleteItem}
                         onEdit={openEditModal}
+                        selectedItems={selectedItems}
+                        onSelectionChange={setSelectedItems}
                       />
                     )}
                   </div>
@@ -1062,7 +1354,11 @@ export default function AdminRawSportHomePage() {
 
       {/* Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onWheel={(e) => e.stopPropagation()}
+
+        >
           <div className="bg-white p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">ADD ITEMS</h2>
@@ -1080,8 +1376,8 @@ export default function AdminRawSportHomePage() {
               <p className="text-xs font-medium mb-3 text-gray-700">
                 {importFiles.length} FILES
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
+              <div className="grid grid-cols-2 h-[512px] gap-2">
+                <div className="h-[512px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:hover:bg-gray-400">
                   {importFiles.map((file, idx) => (
                     <div
                       key={idx}
@@ -1121,8 +1417,8 @@ export default function AdminRawSportHomePage() {
                     viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                      strokeLinecap="square"
+                      strokeLinejoin="square"
                       strokeWidth={2}
                       d="M12 4v16m8-8H4"
                     />
@@ -1130,32 +1426,26 @@ export default function AdminRawSportHomePage() {
                   <p className="text-xs text-gray-600 mb-2">
                     Click or drag files here
                   </p>
-                  <button
+                  <Button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    variant="ghost"
+                    size="sm"
                   >
                     Browse files
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
-            <div className="flex gap-4 mb-6 w-full">
-              <div className="w-full">
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  TYPE*
-                </label>
-                <select
-                  value={selectedTypeImport}
-                  onChange={(e) => setSelectedTypeImport(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 bg-white text-xs focus:outline-none focus:border-black"
-                >
-                  {Object.entries(CAROUSEL_TYPES).map(([type, label]) => (
-                    <option key={type} value={type}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="flex gap-4 mb-6 grid grid-cols-2">
+              <SelectField
+                label="TYPE*"
+                value={selectedTypeImport}
+                onChange={(e) => setSelectedTypeImport(e.target.value)}
+                options={Object.entries(CAROUSEL_TYPES).map(([value, label]) => ({
+                  value,
+                  label,
+                }))}
+              />
               <TextField
                 label="CLIENT"
                 placeholder="Entrer le nom du client"
@@ -1164,165 +1454,111 @@ export default function AdminRawSportHomePage() {
               />
             </div>
             <div className="flex gap-4 justify-end">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setShowImportModal(false);
                   setImportFiles([]);
                 }}
-                className="px-6 py-2 text-gray-700 border border-gray-300 font-medium hover:bg-gray-50 transition"
               >
                 CANCEL
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleImportSubmit}
-                className="px-6 py-2 bg-black text-white font-medium hover:bg-gray-800 transition"
               >
                 ✓ ADD
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showEditModal && editingItem && (
+        <EditModal
+          carouselTypes={CAROUSEL_TYPES}
+          isOpen={showEditModal}
+          onClose={() => { setShowEditModal(false); setEditingItem(null); }}
+          onSave={handleEditSubmit}
+          editingItem={editingItem}
+          editFormData={editFormData}
+          setEditFormData={setEditFormData}
+          editIsActive={editIsActive}
+          setEditIsActive={setEditIsActive}
+          onDelete={handleDeleteItem}
+        />
+      )}
+
+      {/* Bulk Edit Modal */}
+      {showBulkEditModal && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+          onClick={() => setShowBulkEditModal(false)}
+        >
+          <div
+            className="bg-white p-8 max-w-md w-full mx-4 "
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold uppercase">Modifier</h2>
+              <button
+                onClick={() => setShowBulkEditModal(false)}
+                className="text-gray-400 hover:text-black text-2xl font-light"
+              >
+                ×
               </button>
+            </div>
+
+            <div className="space-y-6">
+              <SelectField
+                label="TYPE (optionnel)"
+                value={bulkEditFormData.type}
+                onChange={(e) =>
+                  setBulkEditFormData({ ...bulkEditFormData, type: e.target.value })
+                }
+                options={[
+                  { value: "", label: "Ne pas modifier" },
+                  ...Object.entries(CAROUSEL_TYPES).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
+              <TextField
+                label="CLIENT (optionnel)"
+                placeholder="Nouveau client"
+                value={bulkEditFormData.client}
+                onChange={(e) =>
+                  setBulkEditFormData({ ...bulkEditFormData, client: e.target.value })
+                }
+              />
+
+              <p className="text-xs text-gray-500">
+                Les modifications s'appliqueront à {selectedItems.size} élément(s).
+              </p>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <Button
+                variant="secondary"
+                onClick={() => setShowBulkEditModal(false)}
+                className="flex-1"
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleBulkEditSubmit}
+                className="flex-1"
+              >
+                Modifier
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       {/* Edit Modal */}
-        {showEditModal && editingItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-8 w-full max-w-xl -lg ow-2xl overflow-hidden">
-            {/* Header */}
 
-            <div className="flex items-center justify-between  mb-4 border-gray-200">
-              <h2 className="text-xl font-bold uppercase -wide">
-                MODIFIER
-              </h2>
-              <Button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingItem(null);
-                }}
-                variant="ghost"
-                className=""
-              >
-                ×
-              </Button>
-            </div>
-
-            {/* Content */}
-            <div className=" space-y-6 max-h-[70vh] ">
-              {/* Image Preview */}
-              <div className="w-full grid grid-cols-2 gap-4 justify-center">
-                <div className="relative ">
-                  <img
-                    src={editingItem.imageUrl}
-                    alt={editingItem.imageName}
-                    className="w-full h-full object-cover -lg ow-md"
-                  />
-                </div>
-                <div className=" text-xs text-gray-500">
-                  <p className="font-medium mb-1">{editingItem.imageName}</p>
-                  <Button
-                  variant="secondary"
-                  >Remplacer l'image</Button>
-                </div>
-              </div>
-
-              {/* Image Info */}
-
-              {/* Form Fields Grid */}
-              <div className="w-full space-y-6">
-                {/* Title */}
-                <TextField
-                  label="TITLE"
-                  placeholder="Nom de l'image"
-                  value={editFormData.imageName}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      imageName: e.target.value,
-                    })
-                  }
-                  required
-                />
-
-                {/* Category and Client Grid */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Category */}
-                  <SelectField
-                label="TYPE*"
-                value={selectedTypeImport}
-                onChange={(e) => setSelectedTypeImport(e.target.value)}
-                options={Object.entries(CAROUSEL_TYPES).map(([type, label]) => ({
-                  value: type,
-                  label: label,
-                }))}
-              />
-
-
-                  {/* Client */}
-                  <TextField
-                    label="CLIENT"
-                    placeholder="Client"
-                    value={editFormData.client}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        client: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                {/* Activate Toggle */}
-                <div className="flex w-full p-2 border-gray-300 border items-center justify-between py-2">
-                  <label         
-                   className="block text-xs font-medium  uppercase"
->
-                    ACTIVATE
-                  </label>
-
-                  <ToggleSwitch
-                    isActive={editIsActive}
-                    onChange={() => setEditIsActive(!editIsActive)}
-                  />
-                </div>
-
-                {/* Danger Zone */}
-                <div className="pt-4 flex justify-between w-full">
-                  <h3
-                   className="block text-xs font-medium  uppercase"
-                   >
-                    DANGER ZONE
-                  </h3>
-                  <Button
-                    onClick={() => handleDeleteItem(editingItem.id)}
-                    size="md"
-                    variant="danger"
-                  >
-                    Supprimer
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex gap-4 mt-16 justify-between">
-               <Button
-                onClick={() => {
-                  setShowImportModal(false);
-                  setEditingItem(null);
-                }}
-                size="md"
-                variant="secondary"
-              >
-                CANCEL
-              </Button>
-              <Button onClick={handleImportSubmit} size="md">
-                Save
-              </Button>
-           
-            </div>
-          </div>
-        </div>
-      )}
 
       <ToastContainer messages={toasts} />
     </div>

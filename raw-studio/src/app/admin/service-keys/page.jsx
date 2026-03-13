@@ -117,21 +117,22 @@ export default function ServiceKeysPage() {
   };
 
   const handleUpdatePassword = async (id) => {
-    if (!editPassword) {
-      setError("Password cannot be empty");
-      return;
-    }
-
     try {
+      const updateData = {
+        name: editName,
+        description: editDescription,
+        role: editRole,
+      };
+
+      // Only include password if it's not empty (optional update)
+      if (editPassword) {
+        updateData.password = editPassword;
+      }
+
       const response = await fetch(`/api/admin/service-keys/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          password: editPassword,
-          name: editName,
-          description: editDescription,
-          role: editRole,
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (response.ok) {
@@ -548,7 +549,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
             <div className="text-sm ">
               {/* Table Header */}
               {filteredKeys.length > 0 && (
-                <div className="mb-4 grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
+                <div className=" grid grid-cols-6 gap-4 px-4 py-3 bg-gray-50 text-xs uppercase font-medium text-black/30 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                      {/* <input 
                       ref={(el) => {

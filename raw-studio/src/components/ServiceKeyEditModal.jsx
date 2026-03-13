@@ -3,6 +3,7 @@
 import Button from "@/components/Button";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import CategorySelector from "./CategorySelector";
 
 export default function ServiceKeyEditModal({
   isOpen,
@@ -67,17 +68,17 @@ const handleClose = async () => {
     <div
      
       className="fixed inset-0 flex p-4  items-center justify-end z-50"
-      onClick={handleClose}
     >
       <div
-      
+            onClick={handleClose}
+
  ref={overlayRef}      className="top-0 left-0 bg-black/50 w-full h-full absolute z-0">
 
       </div>
       <div
         ref={contentRef}
 className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col justify-between h-full overflow-y-auto will-change-transform"
-        onClick={(e) => e.stopPropagation()}
+        // onClick={(e) => e.stopPropagation()}
       >
         <div className=" h-full">
 
@@ -121,14 +122,22 @@ className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col just
             <label className="block text-xs font-medium mb-2 uppercase">
               Role
             </label>
-            <select
-              value={role}
-              onChange={(e) => onRoleChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
-            >
-              <option value="SERVICE">Service</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <div className="flex gap-2">
+              {["SERVICE", "ADMIN"].map((roleOption) => (
+                <button
+                  key={roleOption}
+                  onClick={() => onRoleChange(roleOption)}
+                  className={`px-3 py-2 text-xs font-medium rounded transition-all ${
+                    role === roleOption
+                      ? "bg-black text-white"
+                      : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                  }`}
+                  type="button"
+                >
+                  {roleOption}
+                </button>
+              ))}
+            </div>
           </div>
             </div>
                </div>
@@ -142,8 +151,8 @@ className="bg-white p-8 z-10 w-full max-w-md translate-x-140  flex flex-col just
               Cancel
             </Button>
              <Button onClick={async () => {
-              await handleClose();
               onSave(keyId);
+              await handleClose();
             }} className="w-full">
               Save
             </Button>

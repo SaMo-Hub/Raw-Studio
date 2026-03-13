@@ -391,7 +391,7 @@ export default function ProjectsPage() {
         <div className="">
         {/* Sidebar Left - Categories */}
         <div className="flex px-12 justify-between">
-          <div className="gap-4 flex overflow-hidden">
+          <div className="gap-2 flex overflow-hidden">
             {CATEGORIES.map((category) => (
               <Button
                 key={category}

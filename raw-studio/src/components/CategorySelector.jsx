@@ -1,21 +1,43 @@
 import Button from "@/components/Button";
 
-const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
+/**
+ * Generic selector component for choosing one option from a list
+ * @param {Array} options - List of options (strings or {value, label} objects)
+ * @param {string|*} selectedOption - Currently selected option value
+ * @param {function} onOptionChange - Callback when option changes
+ * @param {string} className - Additional CSS classes
+ * @param {string} size - Button size (sm, md, lg)
+ * @param {boolean} border - Show border
+ */
+export default function CategorySelector({
+  options = [],
+  selectedOption,
+  onOptionChange,
+  className = "",
+  size = "sm",
+  border = true,
+}) {
+  // Support both string and object formats
+  const isObjectFormat = options.length > 0 && typeof options[0] === "object";
 
-export default function CategorySelector({ selectedCategories, onCategoryChange }) {
   return (
-    <div className="flex border mt-4 border-gray-300 p-1 gap-2 flex-wrap text-xs">
-      {CATEGORIES.map((cat) => (
-        <Button
-          variant={selectedCategories.includes(cat) ? "primary" : "ghost"}
-          size="sm"
-          key={cat}
-          type="button"
-          onClick={() => onCategoryChange(cat)}
-        >
-          {cat}
-        </Button>
-      ))}
+    <div className={`flex ${border ? "border border-gray-200 p-1" : ""}  gap-2 w-fit ${className}`}>
+      {options.map((option) => {
+        const value = isObjectFormat ? option.value : option;
+        const label = isObjectFormat ? option.label : option;
+
+        return (
+          <Button
+            key={value}
+            variant={selectedOption === value ? "primary" : "ghost" }
+            size={size}
+            type="button"
+            onClick={() => onOptionChange(value)}
+          >
+            {label}
+          </Button>
+        );
+      })}
     </div>
   );
 }
