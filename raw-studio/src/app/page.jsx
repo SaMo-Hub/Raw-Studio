@@ -115,6 +115,46 @@ export default function Home() {
   }, [animationComplete]);
 
   // ── Animation de sortie cinématique ──────────────────────────────────────
+  const animateOut = (onComplete) => {
+    const tl = gsap.timeline({ onComplete });
+
+    // Animer la colonne gauche
+    tl.to(
+      ".leftproject",
+      {
+        clipPath: "inset(0% 0% 100% 0%)",
+        duration: 1.2,
+        ease: "expo.in",
+      },
+      0
+    );
+
+    // Animer la colonne droite
+    tl.to(
+      ".rightproject",
+      {
+        clipPath: "inset(100% 0% 0% 0%)",
+        duration: 1.2,
+        ease: "expo.in",
+      },
+      0
+    );
+
+    // Animer la navbar
+    const navbar = document.querySelector("nav");
+    if (navbar) {
+      tl.to(
+        navbar,
+        {
+          y: "-100%",
+          opacity: 0,
+          duration: 0.8,
+          ease: "expo.in",
+        },
+        0
+      );
+    }
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -153,9 +193,13 @@ export default function Home() {
                             : [];
 
                       return (
-                        <a
+                        <div
                           key={project.id}
-                          href={`/projects/${project.slug}`}
+                          onClick={() => {
+                            animateOut(() => {
+                              router.push(`/projects/${project.slug}`);
+                            });
+                          }}
                           className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                         >
                           <img
@@ -163,7 +207,7 @@ export default function Home() {
                             alt={project.title}
                             className="w-full h-full object-cover bg-amber-800 group-hover:scale-105 transition duration-300"
                           />
-                        </a>
+                        </div>
                       );
                     })}
                 </div>
@@ -188,9 +232,13 @@ export default function Home() {
                             : [];
 
                       return (
-                        <a
+                        <div
                           key={project.id}
-                          href={`/projects/${project.slug}`}
+                          onClick={() => {
+                            animateOut(() => {
+                              router.push(`/projects/${project.slug}`);
+                            });
+                          }}
                           className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                         >
                           <img
@@ -198,7 +246,7 @@ export default function Home() {
                             alt={project.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                           />
-                        </a>
+                        </div>
                       );
                     })}
                 </div>

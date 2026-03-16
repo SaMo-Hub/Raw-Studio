@@ -60,10 +60,10 @@ export const Sidebar = () => {
       <nav className="flex-1 px-4 py-8 space-y-6 overflow-y-auto">
         {/* RAW STUDIO Section */}
         <div>
-          <div className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+          <div className="px-4 text-[10px] mb-1 font-bold text-gray-500 uppercase tracking-wider">
             Raw Studio
           </div>
-          <div className="space-y-2 mt-3">
+          <div className="space-y-2 ">
             <TransitionLink
               href="/admin"
               className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
@@ -109,10 +109,10 @@ export const Sidebar = () => {
 
         {/* RAW+SPORT Section */}
         <div>
-          <div className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+          <div className="px-4 text-[10px] mb-1 font-bold text-gray-500 uppercase tracking-wider">
             Raw+Sport
           </div>
-          <div className="space-y-2 mt-3">
+          <div className="space-y-2 ">
             <TransitionLink
               href="/admin/raw-sport/home"
               className={`px-4 py-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide transition group ${
