@@ -71,7 +71,7 @@ export default function ProjectsPage() {
   const horizontalScrollRef = useRef(null);
   const lenisRef = useRef(null);
   const viewModeRef = useRef(viewMode);
-  
+
   useEffect(() => {
     viewModeRef.current = viewMode;
   }, [viewMode]);
@@ -83,8 +83,6 @@ export default function ProjectsPage() {
   useEffect(() => {
     filterProjects(selectedCategory);
   }, [selectedCategory, projects]);
-
-  // Scroll horizontal fluide avec Lenis
   useEffect(() => {
     const container = horizontalScrollRef.current;
     if (!container || viewMode !== "horizontal") return;
@@ -126,8 +124,8 @@ export default function ProjectsPage() {
       if (filterButtons.length > 0) {
         gsap.fromTo(
           filterButtons,
-          { y: 90 },
-          { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
+          { y: "110%" },
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.08, ease: "power3.out" }
         );
       }
       if (viewModeButtons.length > 0) {
@@ -225,11 +223,13 @@ export default function ProjectsPage() {
     if (currentMode === "horizontal" || currentMode === "grid") {
       const items = document.querySelectorAll("[data-horizontal-item]");
       const texts = document.querySelectorAll("[data-horizontal-text]");
+      const filterButtons = document.querySelectorAll("[data-filter-button]");
+      const viewModeButtons = document.querySelectorAll("[data-view-mode-button]");
 
       const tl = gsap.timeline({ onComplete });
 
       // Animer l'overlay noir qui monte (seulement si c'est vers raw-sport)
-     
+
       if (texts.length > 0) {
         tl.to(texts, {
           y: "-100%",
@@ -253,14 +253,28 @@ export default function ProjectsPage() {
           "<0.05"
         );
       }
-       if(isNavigatingToRawSport) {
+      if (filterButtons.length > 0) {
+        tl.to(
+          filterButtons,
+          { y: "120%", duration: 0.6, stagger: 0.08, ease: "power3.out" },
+          "<0.2"
+        );
+      }
+      if (viewModeButtons.length > 0) {
+        tl.to(
+          viewModeButtons,
+          { y: "120%", duration: 0.6, stagger: 0.08, ease: "power3.out" },
+          "<0.2"
+        );
+      }
+      if (isNavigatingToRawSport) {
         const screenOverlay = document.querySelector("[data-screen-overlay-black]");
         if (screenOverlay) {
           tl.to(screenOverlay, {
             y: "0%",
             duration: 0.8,
             ease: "expo.in",
-          
+
           }, 0);
         }
       }
@@ -272,11 +286,11 @@ export default function ProjectsPage() {
     if (currentMode === "list") {
       const rows = document.querySelectorAll("[data-list-row]");
       const imageContainer = document.querySelector("[data-projects-image-container]");
-      
+
       const tl = gsap.timeline({ onComplete });
 
       // Animer l'overlay noir qui monte (seulement si c'est vers raw-sport)
-      if(isNavigatingToRawSport) {
+      if (isNavigatingToRawSport) {
         const screenOverlay = document.querySelector("[data-screen-overlay-black]");
         if (screenOverlay) {
           tl.to(screenOverlay, {
@@ -286,7 +300,7 @@ export default function ProjectsPage() {
           }, 0);
         }
       }
-      
+
       if (rows.length > 0) {
         tl.to(rows, {
           y: "-60px",
@@ -297,7 +311,7 @@ export default function ProjectsPage() {
           ease: "expo.in",
         });
       }
-      
+
       // Clear the image container after rows animation finishes
       if (imageContainer) {
         tl.to(imageContainer, {
@@ -306,7 +320,8 @@ export default function ProjectsPage() {
           ease: "expo.in",
         });
       }
-      
+
+
       if (rows.length === 0 && !imageContainer) {
         onComplete();
       }
@@ -347,15 +362,32 @@ export default function ProjectsPage() {
     });
   };
 
+  // Fonction pour filtrer avec animation
+  const filterProjectsWithAnimation = (category) => {
+    // Ne pas changer selectedCategory ici, juste faire l'animation
+    document.documentElement.style.overflow = "hidden";
+    animateOut(() => {
+      setSelectedCategory(category);
+      setFilteredProjects(getFiltered(category));
+      document.documentElement.style.overflow = "auto";
+    });
+  };
+
+  // Fonction simple pour lister (utilisée au chargement)
   const filterProjects = (category) => {
-    setSelectedCategory(category);
-    animateOut(() => setFilteredProjects(getFiltered(category)));
+    setFilteredProjects(getFiltered(category));
   };
 
   // ─── Changement de vue avec animation de sortie ───────────────────────────────
   const changeViewMode = (newMode) => {
     if (newMode === viewMode) return;
-    animateOut(() => setViewMode(newMode));
+    // Bloquer le scroll pendant l'animation
+    document.documentElement.style.overflow = "hidden";
+    animateOut(() => {
+      setViewMode(newMode);
+      // Réactiver le scroll après l'animation
+      document.documentElement.style.overflow = "auto";
+    });
   };
 
   // ─── Navigation vers un projet avec animation de sortie ───────────────────────
@@ -398,210 +430,215 @@ export default function ProjectsPage() {
     <PageAnimationProvider onAnimateOut={animateOut}>
       <div className="bg-white pt-24 no-scrollbar relative">
         {/* Overlay noir pour la transition vers raw-sport */}
-        <div 
+        <div
           className="fixed inset-0 bg-black pointer-events-none z-50"
           style={{ transform: "translateY(100%)" }}
           data-screen-overlay-black
         />
-        
+
         <Navbar />
 
         <div className="">
-        {/* Sidebar Left - Categories */}
-        <div className="flex px-6 justify-between">
-          <div className="gap-2 flex overflow-hidden">
-            {CATEGORIES.map((category) => (
-              <Button
-                key={category}
-                data-filter-button
-                onClick={() => filterProjects(category)}
-                variant={selectedCategory === category ? "primary" : "ghost"}
-                size="sm"
-                className="flex translate-y-22.5"
-              >
-                <span>{category}</span>
-                <span className="ml-1">({getCategoryCount(category)})</span>
-              </Button>
-            ))}
+          {/* Sidebar Left - Categories */}
+          <div className="flex px-6 justify-between">
+            <div className="gap-2 flex overflow-hidden">
+              {CATEGORIES.map((category) => (
+
+
+                <Button
+                  key={category}
+                  data-filter-button
+                  onClick={() => filterProjectsWithAnimation(category)}
+                  variant={selectedCategory === category ? "primary" : "ghost"}
+                  size="sm"
+                  className="flex translate-y-22.5"
+                >
+                  <span>{category}</span>
+                  <span className="ml-1">({getCategoryCount(category)})</span>
+                </Button>
+
+              ))}
+            </div>
+
+            <div
+
+              className="gap-2 flex overflow-hidden">
+
+              {VIEW_MODES.map((mode) => (
+                <Button
+                  key={mode.id}
+                  data-view-mode-button
+                  onClick={() => changeViewMode(mode.id)}
+                  variant={viewMode === mode.id ? "primary" : "secondary"}
+                  size="sm"
+                  className="flex translate-y-22.5  items-center gap-2"
+                  title={mode.label}
+                >
+                  {mode.icon}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          <div className="gap-2 flex overflow-hidden">
-            
-            {VIEW_MODES.map((mode) => (
-              <Button
-                key={mode.id}
-                data-view-mode-button
-                onClick={() => changeViewMode(mode.id)}
-                variant={viewMode === mode.id ? "primary" : "secondary"}
-                size="sm"
-                className="flex translate-y-22.5  items-center gap-2"
-                title={mode.label}
-              >
-                {mode.icon}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="h-full flex-1 pt-12">
-          <div className="">
-            {loading ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600"></p>
-              </div>
-            ) : filteredProjects.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No projects found in this category.</p>
-              </div>
-            ) : (
-              <>
-                {/* ── Grid View ── */}
-                {viewMode === "grid" && (
-                  <div className="uppercase no-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
-                    {filteredProjects.map((project) => (
-                      <Link
-                        data-grid-item
-                        key={project.id}
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleNavigateToProject(project.slug);
-                        }}
-                        className="group cursor-pointer"
-                      >
-                        <div className="relative overflow-hidden aspect-square">
-                          <img
-                            data-horizontal-item
-                            src={getProjectImage(project)}
-                            alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="relative overflow-hidden">
-                          <h3
-                            data-horizontal-text
-                            className="mt-2 ml-1 transition"
-                          >
-                            {project.title}
-                          </h3>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* ── Horizontal View ── */}
-                {viewMode === "horizontal" && (
-                  <div
-                    ref={horizontalScrollRef}
-                    className="uppercase flex w-screen overflow-hidden no-scrollbar"
-                  >
-                    {filteredProjects.map((project) => (
-                      <Link
-                        key={project.id}
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleNavigateToProject(project.slug);
-                        }}
-                        className="group h-full cursor-pointer flex flex-col shrink-0"
-                      >
-                        <div className="relative flex flex-col">
-                          <div className="h-[73vh] overflow-hidden w-96">
-                            <img
-                              data-horizontal-item
-                              src={getProjectImage(project)}
-                              alt={project.title}
-                              className="h-full  w-full object-cover group-hover:scale-105"
-                            />
-                          </div>
-                          <div className="relative overflow-hidden">
-                            <h3
-                              data-horizontal-text
-                              className="mt-2 ml-1 text-black"
-                            >
-                              {project.title}
-                            </h3>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* ── List View ── */}
-                {viewMode === "list" && (
-                  <div className="w-full overflo-hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
-                    {/* Image centrale fixe */}
-                    <div data-projects-image-container className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 overflow-hidden pointer-events-none z-10">
-                      {filteredProjects.map((project, index) => (
-                        <img
-                          key={project.id}
-                          id={`project-image-${index}`}
-                          className="absolute w-full h-full bg-white object-cover opacity-0 transition-opacity duration-300"
-                          src={getProjectImage(project)}
-                          alt={project.title}
-                        />
-                      ))}
-                    </div>
-
-                    {filteredProjects.map((project, index) => (
-                      <div
-                        key={project.id}
-                        className="group uppercase overflow-hidden "
-                        onMouseEnter={() => {
-                          filteredProjects.forEach((_, i) => {
-                            const img = document.getElementById(`project-image-${i}`);
-                            if (img) img.style.opacity = "0";
-                          });
-                          const currentImg = document.getElementById(`project-image-${index}`);
-                          if (currentImg) currentImg.style.opacity = "1";
-                        }}
-                        onMouseLeave={() => {
-                          const currentImg = document.getElementById(`project-image-${index}`);
-                          if (currentImg) currentImg.style.opacity = "0";
-                        }}
-                      >
+          {/* Main Content */}
+          <div className="h-full flex-1 pt-12">
+            <div className="">
+              {loading ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600"></p>
+                </div>
+              ) : filteredProjects.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">No projects found in this category.</p>
+                </div>
+              ) : (
+                <>
+                  {/* ── Grid View ── */}
+                  {viewMode === "grid" && (
+                    <div className="uppercase no-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-2 mb-6">
+                      {filteredProjects.map((project) => (
                         <Link
-                          data-list-row
+                          data-grid-item
+                          key={project.id}
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
                             handleNavigateToProject(project.slug);
                           }}
-                          className="cursor-pointer py-4 flex gap-24 bg-white items-center">
-                          <div className="relative py-2 bg-white w-1/5 -ml-12">
-                            <h3 className="font-neue ml-12">
-                              [{index}]
-                            </h3>
-                            <div className="bg-white mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 duration-300 ease-in-out transition origin-left absolute w-3/5 h-full top-0" />
+                          className="group cursor-pointer"
+                        >
+                          <div className="relative overflow-hidden aspect-square">
+                            <img
+                              data-horizontal-text
+                              src={getProjectImage(project)}
+                              alt={project.title}
+                              className="w-full h-full object-cover group-hover:scale-105"
+                            />
                           </div>
-
-                          <h3 className="relative z-20 text-white mix-blend-difference w-2/5">{project.title}</h3>
-                          <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">
-                            {project.client}
-                          </h3>
-
-                          <div className="relative py-2 bg-white w-1/5 justify-end flex -mr-12">
-                            <h3 className="relative mr-12">
-                              {project.projectDate
-                                ? new Date(project.projectDate).getFullYear()
-                                : "N/A"}
+                          <div className="relative overflow-hidden">
+                            <h3
+                              data-horizontal-text
+                              className="mt-2 ml-1 transition"
+                            >
+                              {project.title}
                             </h3>
-                            <div className="right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0" />
                           </div>
                         </Link>
+                      ))}
+                    </div>
+                  )}
 
+                  {/* ── Horizontal View ── */}
+                  {viewMode === "horizontal" && (
+                    <div
+                      ref={horizontalScrollRef}
+                      className="uppercase flex w-screen overflow-hidden no-scrollbar"
+                    >
+                      {filteredProjects.map((project) => (
+                        <Link
+                          key={project.id}
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigateToProject(project.slug);
+                          }}
+                          className="group h-full cursor-pointer flex flex-col shrink-0"
+                        >
+                          <div className="relative flex flex-col">
+                            <div className="h-[73vh] overflow-hidden w-96">
+                              <img
+                                data-horizontal-item
+                                src={getProjectImage(project)}
+                                alt={project.title}
+                                className="h-full  w-full object-cover group-hover:scale-105"
+                              />
+                            </div>
+                            <div className="relative overflow-hidden">
+                              <h3
+                                data-horizontal-text
+                                className="mt-2 ml-1 text-black"
+                              >
+                                {project.title}
+                              </h3>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ── List View ── */}
+                  {viewMode === "list" && (
+                    <div className="w-full overflo-hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 uppercase px-12">
+                      {/* Image centrale fixe */}
+                      <div data-projects-image-container className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 overflow-hidden pointer-events-none z-10">
+                        {filteredProjects.map((project, index) => (
+                          <img
+                            key={project.id}
+                            id={`project-image-${index}`}
+                            className="absolute w-full h-full bg-white object-cover opacity-0 transition-opacity duration-300"
+                            src={getProjectImage(project)}
+                            alt={project.title}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
+
+                      {filteredProjects.map((project, index) => (
+                        <div
+                          key={project.id}
+                          className="group uppercase overflow-hidden "
+                          onMouseEnter={() => {
+                            filteredProjects.forEach((_, i) => {
+                              const img = document.getElementById(`project-image-${i}`);
+                              if (img) img.style.opacity = "0";
+                            });
+                            const currentImg = document.getElementById(`project-image-${index}`);
+                            if (currentImg) currentImg.style.opacity = "1";
+                          }}
+                          onMouseLeave={() => {
+                            const currentImg = document.getElementById(`project-image-${index}`);
+                            if (currentImg) currentImg.style.opacity = "0";
+                          }}
+                        >
+                          <Link
+                            data-list-row
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavigateToProject(project.slug);
+                            }}
+                            className="cursor-pointer py-4 flex gap-24 bg-white items-center">
+                            <div className="relative py-2 bg-white w-1/5 -ml-12">
+                              <h3 className="font-neue ml-12">
+                                [{index}]
+                              </h3>
+                              <div className="bg-white mix-blend-difference left-0 scale-x-0 group-hover:scale-x-100 duration-300 ease-in-out transition origin-left absolute w-3/5 h-full top-0" />
+                            </div>
+
+                            <h3 className="relative z-20 text-white mix-blend-difference w-2/5">{project.title}</h3>
+                            <h3 className="relative text-white z-30 w-2/5 mix-blend-difference">
+                              {project.client}
+                            </h3>
+
+                            <div className="relative py-2 bg-white w-1/5 justify-end flex -mr-12">
+                              <h3 className="relative mr-12">
+                                {project.projectDate
+                                  ? new Date(project.projectDate).getFullYear()
+                                  : "N/A"}
+                              </h3>
+                              <div className="right-0 scale-x-0 group-hover:scale-x-100 transition duration-300 ease-in-out origin-right bg-white mix-blend-difference absolute w-3/5 h-full top-0" />
+                            </div>
+                          </Link>
+
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </PageAnimationProvider>
   );

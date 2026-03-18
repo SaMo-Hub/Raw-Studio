@@ -112,12 +112,10 @@ export default function EditProjectPage() {
     if (imagesContainer) {
       tl.to(
         imagesContainer,
-        {
-          clipPath: "inset(100% 0% 0% 0%)",
-          duration: 1.2,
-          ease: "expo.in",
-        },
-        0
+                   { clipPath: "inset(100% 0% 0% 0%)", duration: 1, delay: 0.1, ease: "expo.out" },
+          "<0.6"
+
+        
       );
     }
 
@@ -387,9 +385,15 @@ export default function EditProjectPage() {
 
         {/* LEFT COLUMN - Texte */}
         <div data-project-sidebar className=" fixed z-20 shrink-0 h-full text-black bg-white px-6 w-[338px] py-30 flex flex-col justify-start">
-          <Button size="inline" className="w-fit mb-5" variant="ghost">
-                        ←             Project List
-
+          <Button 
+      onClick={() => {
+                            animateOut(() => {
+                              router.push(`/projects/`);
+                            });
+                          }}
+          size="inline" className="w-fit mb-5" variant="ghost">
+            ←             Project List
+           
           </Button>
         
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { TransitionLink } from "@/components/TransitionLink";
 import { Link } from "next-transition-router";
+import { PageAnimationProvider } from "@/context/PageAnimationContext";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -92,14 +93,14 @@ export default function Home() {
         tl.fromTo(
           ".leftimage",
           { clipPath: "inset(100% 0% 0% 0%)", },
-            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, delay: 0.1, ease: "expo.out" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1, delay: 0.1, ease: "expo.out" },
           
         );
 
         tl.fromTo(
           ".rightimage",
           { clipPath: "inset(0% 0% 100% 0%)", },
-            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, delay: 0.1, ease: "expo.out" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1, delay: 0.1, ease: "expo.out" },
           0
         );
       }
@@ -179,6 +180,8 @@ tl.to(
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
+        <PageAnimationProvider onAnimateOut={animateOut}>
+
     <div className="min-h-screen bg-white">
       <Navbar />
 
@@ -276,5 +279,6 @@ tl.to(
         </div>
       </section>
     </div>
+        </PageAnimationProvider>
   );
 }
