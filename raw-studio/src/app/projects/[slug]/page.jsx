@@ -21,6 +21,7 @@ export default function EditProjectPage() {
   const [error, setError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAnimatingIn, setIsAnimatingIn] = useState(false);
 
   // Helper function to split text into words
   const splitIntoWords = (text) => {
@@ -136,8 +137,14 @@ export default function EditProjectPage() {
   // ─── Animation d'ENTRÉE ──────────────────────────────────────────────
   useEffect(() => {
     if (!project) return;
+      console.log(isAnimatingIn);
 
-    const tl = gsap.timeline();
+    setIsAnimatingIn(true);
+    const tl = gsap.timeline({
+      
+      onComplete: () => setIsAnimatingIn(false)
+    });
+      console.log(isAnimatingIn);
 
     // Animer le titre
     const title = document.querySelector("[data-project-title]");
@@ -226,6 +233,15 @@ export default function EditProjectPage() {
       );
     }
   }, [project]);
+
+  // Désactiver le scroll pendant l'animation d'entrée
+  useEffect(() => {
+    if (isAnimatingIn) {
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "auto";
+    }
+  }, [isAnimatingIn]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -371,12 +387,11 @@ export default function EditProjectPage() {
 
         {/* LEFT COLUMN - Texte */}
         <div data-project-sidebar className=" fixed z-20 shrink-0 h-full text-black bg-white px-6 w-[338px] py-30 flex flex-col justify-start">
-          <TransitionLink
-            href="/projects"
-            className="mb-8 text-xs uppercase tracking-wide text-gray-600 hover:text-black transition"
-          >
-            ← Back
-          </TransitionLink>
+          <Button size="inline" className="w-fit mb-5" variant="ghost">
+                        ←             Project List
+
+          </Button>
+        
 
           <h1 className="overflow-hidden uppercase font-bold mb-8 leading-tight">
             <span

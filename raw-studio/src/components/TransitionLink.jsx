@@ -31,7 +31,7 @@ export function TransitionLink({ className, href, children, onClick, ...props })
       triggerExit();
       setTimeout(() => {
         router.push(href);
-      }, 100);
+      }, 0);
     }
   };
 

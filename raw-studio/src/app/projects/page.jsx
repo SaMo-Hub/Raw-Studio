@@ -67,6 +67,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [viewMode, setViewMode] = useState("horizontal");
+  const [isAnimatingIn, setIsAnimatingIn] = useState(true);
   const horizontalScrollRef = useRef(null);
   const lenisRef = useRef(null);
   const viewModeRef = useRef(viewMode);
@@ -143,6 +144,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     if (!loading) {
       const currentMode = viewModeRef.current;
+      setIsAnimatingIn(true);
 
       if (currentMode === "horizontal" || currentMode === "grid") {
         // Items image
@@ -192,8 +194,24 @@ export default function ProjectsPage() {
           });
         }
       }
+
+      // Désactiver le flag d'animation après 2 secondes (durée max + stagger)
+      const timeout = setTimeout(() => {
+        setIsAnimatingIn(false);
+      }, 2000);
+
+      return () => clearTimeout(timeout);
     }
   }, [viewMode, filteredProjects, loading]);
+
+  // Désactiver le scroll pendant l'animation d'entrée
+  useEffect(() => {
+    if (isAnimatingIn) {
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "auto";
+    }
+  }, [isAnimatingIn]);
 
   // ─── Animation de SORTIE unifiée ──────────────────────────────────────────────
   /**

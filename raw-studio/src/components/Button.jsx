@@ -28,6 +28,7 @@ const Button = ({
     sm: "px-3 py-1.5 text-xs",
     md: "px-6 py-3 text-xs",
     lg: "px-8 py-4 text-sm",
+    inline: "px-0 py-0 text-xs",
   };
 
   // Color variants with smooth transitions

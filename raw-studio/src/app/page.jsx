@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { TransitionLink } from "@/components/TransitionLink";
+import { Link } from "next-transition-router";
 
 export default function Home() {
   const [projects, setProjects] = useState([]);
@@ -13,23 +14,21 @@ export default function Home() {
   const [windowHeight, setWindowHeight] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [isFirstVisit, setIsFirstVisit] = useState(true);
   const sectionsRef = useRef(null);
   const router = useRouter();
-
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
   const leftProjects = projects.filter((_, i) => i % 2 === 0);
   const rightProjects = projects.filter((_, i) => i % 2 === 1);
   const totalHeight = Math.max(leftProjects.length, rightProjects.length) * windowHeight;
 
   useEffect(() => {
-    // Vérifier si c'est la première visite
+
     const hasSeenAnimation = sessionStorage.getItem("hasSeenDramaticAnimation");
     if (hasSeenAnimation) {
       setIsFirstVisit(false);
     } else {
       sessionStorage.setItem("hasSeenDramaticAnimation", "true");
     }
-
     const fetchProjects = async () => {
       try {
         const response = await fetch("/api/projects");
@@ -54,7 +53,7 @@ export default function Home() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Animation d'entrée
+  // Animation d'entrée premium
   useEffect(() => {
     if (!loading && projects.length > 0 && windowHeight > 0) {
       const tl = gsap.timeline({
@@ -91,33 +90,55 @@ export default function Home() {
       } else {
         // Animation plus chill pour la navigation
         tl.fromTo(
-          ".leftproject",
-          { clipPath: "inset(0% 0% 100% 0%)", },
-            { clipPath: "inset(0% 0% 0% 0%)", duration: 3, delay: 0.5, ease: [0.9, 0, 0.1, 1] },
-          0
+          ".leftimage",
+          { clipPath: "inset(100% 0% 0% 0%)", },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, delay: 0.1, ease: "expo.out" },
+          
         );
 
         tl.fromTo(
-          ".rightproject",
-          { clipPath: "inset(100% 0% 0% 0%)", },
-            { clipPath: "inset(0% 0% 0% 0%)", duration: 3, delay: 0.5, ease: "power2.out" },
+          ".rightimage",
+          { clipPath: "inset(0% 0% 100% 0%)", },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, delay: 0.1, ease: "expo.out" },
           0
         );
       }
     }
+
   }, [loading, projects.length, windowHeight, isFirstVisit, leftProjects.length, totalHeight]);
 
   useEffect(() => {
-    if (!animationComplete) return;
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [animationComplete]);
+    // Désactiver/activer le scroll selon l'état de l'animation
+    
+      document.documentElement.style.overflow = "auto";
+      const handleScroll = () => setScrollY(window.scrollY);
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    
+  }, []);
 
   // ── Animation de sortie cinématique ──────────────────────────────────────
-  const animateOut = (onComplete) => {
-    const tl = gsap.timeline({ onComplete });
+const animateOut = (onComplete) => {
+    // Bloquer le scroll pendant la sortie
+    document.documentElement.style.overflow = "hidden";
+    
+    const tl = gsap.timeline({ 
+      onComplete: () => {
+        document.documentElement.style.overflow = "auto";
+        onComplete();
+      }
+    });
+tl.to(
+          ".leftimage",
+          { clipPath: "inset(100% 0% 0% 0%)", duration: 1.2, ease: "expo.out" },
+          
+        );
 
+        tl.to(
+          ".rightimage",
+          { clipPath: "inset(0% 0% 100% 0%)", duration: 1.2, ease: "expo.out" },
+          0
+        );
     // Animer la colonne gauche
     tl.to(
       ".leftproject",
@@ -141,21 +162,20 @@ export default function Home() {
     );
 
     // Animer la navbar
-    const navbar = document.querySelector("nav");
-    if (navbar) {
-      tl.to(
-        navbar,
-        {
-          y: "-100%",
-          opacity: 0,
-          duration: 0.8,
-          ease: "expo.in",
-        },
-        0
-      );
-    }
+    // const navbar = document.querySelector("nav");
+    // if (navbar) {
+    //   tl.to(
+    //     navbar,
+    //     {
+    //       y: "-100%",
+    //       opacity: 0,
+    //       duration: 0.8,
+    //       ease: "expo.in",
+    //     },
+    //     0
+    //   );
+    // }
   };
-
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -175,7 +195,7 @@ export default function Home() {
               <p className="text-gray-600">No projects yet. Check back soon!</p>
             </div>
           ) : (
-            <div ref={sectionsRef} className="grid grid-cols-1 md:grid-cols-2">
+            <div ref={sectionsRef} className="grid  grid-cols-1 md:grid-cols-2">
               {/* Colonne gauche */}
               <div className="h-full w-full">
                 <div
@@ -189,8 +209,8 @@ export default function Home() {
                         typeof project.images === "string"
                           ? JSON.parse(project.images)
                           : Array.isArray(project.images)
-                            ? project.images
-                            : [];
+                          ? project.images
+                          : [];
 
                       return (
                         <div
@@ -200,7 +220,7 @@ export default function Home() {
                               router.push(`/projects/${project.slug}`);
                             });
                           }}
-                          className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
+                          className="group leftimage cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                         >
                           <img
                             src={projectImages[0]}
@@ -228,8 +248,8 @@ export default function Home() {
                         typeof project.images === "string"
                           ? JSON.parse(project.images)
                           : Array.isArray(project.images)
-                            ? project.images
-                            : [];
+                          ? project.images
+                          : [];
 
                       return (
                         <div
@@ -239,7 +259,7 @@ export default function Home() {
                               router.push(`/projects/${project.slug}`);
                             });
                           }}
-                          className="group cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
+                          className="group rightimage cursor-pointer block h-screen bg-amber-800 d-lg overflow-hidden"
                         >
                           <img
                             src={projectImages[0]}
