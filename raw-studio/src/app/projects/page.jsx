@@ -429,7 +429,7 @@ export default function ProjectsPage() {
   return (
     <PageAnimationProvider onAnimateOut={animateOut}>
       <div className="bg-white pt-24 no-scrollbar relative">
-        {/* Overlay noir pour la transition vers raw-sport */}
+        {/* Overlay noir pour sla transition vers raw-sport */}
         <div
           className="fixed inset-0 bg-black pointer-events-none z-50"
           style={{ transform: "translateY(100%)" }}
