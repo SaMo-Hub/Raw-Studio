@@ -371,13 +371,13 @@ export default function AdminDashboard() {
                   {/* Type */}
                   <div>
                     <span className="inline-block uppercase text-xs px-3 py-1 bg-black text-white rounded-full font-medium">
-                      {project.technologies
+                      {project.category
                         ? (() => {
                             try {
-                              const techs = JSON.parse(project.technologies);
+                              const techs = JSON.parse(project.category);
                               return Array.isArray(techs) && techs.length > 0 ? techs[0] : "—";
                             } catch {
-                              return project.technologies || "—";
+                              return project.category || "—";
                             }
                           })()
                         : "—"}

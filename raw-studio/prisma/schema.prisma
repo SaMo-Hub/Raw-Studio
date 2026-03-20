@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Modèle pour les clés d'accès/service keys
@@ -33,7 +34,7 @@ model Project {
   longDesc    String
   images      String
   videos      String?
-  category String
+  category    String?
   client      String?
   projectDate DateTime?
   externalLink String?
