@@ -4,13 +4,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(request) {
   try {
-    // Récupérer toutes les clés (SERVICE et ADMIN)
+    // Récupérer toutes les clés (RAW-SPORT et ADMIN)
     const accessKeys = await prisma.accessKey.findMany({
       select: {
         id: true,
         password: true,
         name: true,
-        description: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -31,7 +30,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { password, name, description, role } = await request.json();
+    const { password, name, role } = await request.json();
 
     if (!password || password.length < 6) {
       return NextResponse.json(
@@ -41,7 +40,7 @@ export async function POST(request) {
     }
 
     // Valider le rôle
-    const validRole = (role === "ADMIN" || role === "SERVICE") ? role : "SERVICE";
+    const validRole = (role === "ADMIN" || role === "RAW-SPORT") ? role : "RAW-SPORT";
 
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,7 +51,6 @@ export async function POST(request) {
         value: hashedPassword,
         password: password, // Stocker le mot de passe en clair
         name: name || null,
-        description: description || null,
         role: validRole,
         isActive: true,
       },
@@ -60,7 +58,6 @@ export async function POST(request) {
         id: true,
         password: true,
         name: true,
-        description: true,
         role: true,
         isActive: true,
         createdAt: true,

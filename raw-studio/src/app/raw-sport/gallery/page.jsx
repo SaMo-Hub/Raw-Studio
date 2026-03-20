@@ -21,7 +21,7 @@ export default function RawSportGalleryPage() {
       try {
         const response = await fetch("/api/auth/session");
         const data = await response.json();
-        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "SERVICE")) {
+        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "RAW-SPORT")) {
           setIsAuthorized(true);
         } else {
           setIsAuthorized(false);

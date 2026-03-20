@@ -66,12 +66,12 @@ export default function LoginPage() {
       if (response.ok) {
         const data = await response.json();
         // Rediriger selon le rôle avec animation de sortie
-        const isRawSport = data.role === "SERVICE";
+        const isRawSport = data.role === "RAW-SPORT";
         
         const onAnimationComplete = () => {
           if (data.role === "ADMIN") {
             router.push("/admin");
-          } else if (data.role === "SERVICE") {
+          } else if (data.role === "RAW-SPORT") {
             router.push("/raw-sport");
           } else {
             router.push("/");

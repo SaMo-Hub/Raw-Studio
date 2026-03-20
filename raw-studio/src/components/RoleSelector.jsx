@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 
-const ROLES = ["SERVICE", "ADMIN"];
+const ROLES = ["RAW-SPORT", "ADMIN"];
 
 export default function RoleSelector({ selectedRole, onRoleChange }) {
   return (

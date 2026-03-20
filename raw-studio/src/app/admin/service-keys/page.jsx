@@ -10,26 +10,26 @@ import ServiceKeyEditModal from "@/components/ServiceKeyEditModal";
 import StatusTag from "@/components/StatusTag";
 import { Sidebar } from "@/components/Sidebar";
 import CategorySelector from "@/components/CategorySelector";
+import Tag from "@/components/Tag";
 
 export default function ServiceKeysPage() {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ password: "", name: "", description: "", role: "SERVICE" });
+  const [formData, setFormData] = useState({ password: "", name: "", role: "RAW-SPORT" });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editPassword, setEditPassword] = useState("");
   const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editRole, setEditRole] = useState("SERVICE");
+  const [editRole, setEditRole] = useState("RAW-SPORT");
   const [selectedKeys, setSelectedKeys] = useState(new Set());
   const [selectedRole, setSelectedRole] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [borderStyle, setBorderStyle] = useState({ left: 0, width: 0 });
   const [sortBy, setSortBy] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
-  const buttonRefs = useRef({ ALL: null, ADMIN: null, SERVICE: null });
+  const buttonRefs = useRef({ ALL: null, ADMIN: null, "RAW-SPORT": null });
 
   // Mettre à jour la position du border animé
   useEffect(() => {
@@ -74,7 +74,6 @@ export default function ServiceKeysPage() {
         body: JSON.stringify({ 
           password: formData.password,
           name: formData.name,
-          description: formData.description,
           role: formData.role,
         }),
       });
@@ -82,7 +81,7 @@ export default function ServiceKeysPage() {
       if (response.ok) {
         const newKey = await response.json();
         setKeys([newKey, ...keys]);
-        setFormData({ password: "", name: "", description: "", role: "SERVICE" });
+        setFormData({ password: "", name: "", role: "RAW-SPORT" });
         setShowForm(false);
       } else {
         const data = await response.json();
@@ -98,20 +97,38 @@ export default function ServiceKeysPage() {
   const handleToggleActive = async (id, currentStatus) => {
     try {
       const key = keys.find((k) => k.id === id);
+      if (!key) {
+        setError("Key not found");
+        return;
+      }
+
+      const payload = { 
+        isActive: !currentStatus,
+        role: key.role,
+      };
+      
+      console.log("Toggling key:", { id, payload });
+
       const response = await fetch(`/api/admin/service-keys/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          isActive: !currentStatus,
-          role: key.role,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log("Response status:", response.status);
+      
       if (response.ok) {
         const updated = await response.json();
+        console.log("Update successful:", updated);
         setKeys(keys.map((k) => (k.id === id ? updated : k)));
+        setError(""); // Clear error on success
+      } else {
+        const data = await response.json();
+        console.log("Update failed:", data);
+        setError(data.error || "Failed to update key");
       }
     } catch (err) {
+      console.error("Toggle error:", err);
       setError("Failed to update key");
     }
   };
@@ -120,7 +137,6 @@ export default function ServiceKeysPage() {
     try {
       const updateData = {
         name: editName,
-        description: editDescription,
         role: editRole,
       };
 
@@ -141,8 +157,7 @@ export default function ServiceKeysPage() {
         setEditingId(null);
         setEditPassword("");
         setEditName("");
-        setEditDescription("");
-        setEditRole("SERVICE");
+        setEditRole("RAW-SPORT");
         // Recharger les données pour s'assurer que tout est à jour
         await fetchKeys();
       } else {
@@ -374,7 +389,7 @@ export default function ServiceKeysPage() {
         <div className=" mb-3">
           <div className="relative mb-3">
             <div className="flex gap-4">
-              {["ALL", "ADMIN", "SERVICE"].map((role) => (
+              {["ALL", "ADMIN", "RAW-SPORT"].map((role) => (
                 <button
                   key={role}
                   ref={(el) => {
@@ -451,34 +466,6 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
               <h2 className="text-lg font-bold mb-4 uppercase">New key</h2>
               <form onSubmit={handleCreateKey} className="space-y-4">
                 <div>
-                  <label htmlFor="password" className="block text-xs font-medium mb-2 uppercase">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    placeholder="Enter password"
-                    className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="role" className="block text-xs font-medium mb-2 uppercase">
-                    Role
-                  </label>
-                  <OptionSelector
-                    options={["SERVICE", "ADMIN"]}
-                    selectedValue={formData.role}
-                    onValueChange={(role) =>
-                      setFormData({ ...formData, role })
-                    }
-                    isSingleSelect={true}
-                  />
-                </div>
-                <div>
                   <label htmlFor="name" className="block text-xs font-medium mb-2 uppercase">
                     Name
                   </label>
@@ -493,21 +480,37 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                     className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
-                <div>
-                  <label htmlFor="description" className="block text-xs font-medium mb-2 uppercase">
-                    Description
+                  <div>
+                  <label htmlFor="password" className="block text-xs font-medium mb-2 uppercase">
+                    Password
                   </label>
                   <input
-                    type="text"
-                    id="description"
-                    value={formData.description}
+                    type="password"
+                    id="password"
+                    value={formData.password}
                     onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
+                      setFormData({ ...formData, password: e.target.value })
                     }
-                    placeholder="Description"
+                    placeholder="Enter password"
                     className="w-full px-4 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
+               
+                <div>
+                  <label htmlFor="role" className="block text-xs font-medium mb-2 uppercase">
+                    Role
+                  </label>
+                  <OptionSelector
+                    options={["RAW-SPORT", "ADMIN"]}
+                    selectedValue={formData.role}
+                    onValueChange={(role) =>
+                      setFormData({ ...formData, role })
+                    }
+                    isSingleSelect={true}
+                  />
+                </div>
+               
+               
                 <div className="flex gap-4">
                   <Button
                     type="submit"
@@ -520,7 +523,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                     variant="secondary"
                     onClick={() => {
                       setShowForm(false);
-                      setFormData({ password: "", name: "", description: "", role: "SERVICE" });
+                      setFormData({ password: "", name: "", role: "RAW-SPORT" });
                     }}
                   >
                     Cancel
@@ -629,21 +632,14 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                   </div>
                   <div className=" text-xs text-gray-600">{key.password}</div>
                   <div>
-                    <span
-                      className={`text-xs px-3 py-1 -full font-medium ${
-                        key.role === "ADMIN"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {key.role || "SERVICE"}
-                    </span>
+                    
+                  <StatusTag isActive={key.role === "ADMIN"} option={["ADMIN", "RAW-SPORT"]} role="role" />
                   </div>
                   <div className="text-xs text-gray-600">
                     {new Date(key.createdAt).toLocaleDateString("fr-FR")}
                   </div>
                   <div>
-                    <StatusTag isActive={key.isActive} />
+                    <StatusTag isActive={key.isActive} option={["ACTIVE", "INACTIVE"]} />
                   </div>
                   <div className="flex items-center justify-end gap-4">
                     <ToggleSwitch
@@ -655,8 +651,7 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
                         setEditingId(key.id);
                         setEditPassword(key.password);
                         setEditName(key.name || "");
-                        setEditDescription(key.description || "");
-                        setEditRole(key.role || "SERVICE");
+                        setEditRole(key.role || "RAW-SPORT");
                       }}
                       className="text-gray-600 hover:text-black transition text-sm"
                       title="Edit"
@@ -709,18 +704,15 @@ className="absolute bottom-0 h-[1.8px] bg-black transition-all duration-500 ease
               setEditingId(null);
               setEditPassword("");
               setEditName("");
-              setEditDescription("");
-              setEditRole("SERVICE");
+              setEditRole("RAW-SPORT");
             }}
             onSave={handleUpdatePassword}
             keyId={editingId}
             name={editName}
             password={editPassword}
-            description={editDescription}
             role={editRole}
             onNameChange={setEditName}
             onPasswordChange={setEditPassword}
-            onDescriptionChange={setEditDescription}
             onRoleChange={setEditRole}
           />
         </div>

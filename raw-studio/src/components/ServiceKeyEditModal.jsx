@@ -1,9 +1,9 @@
 "use client";
 
 import Button from "@/components/Button";
+import OptionSelector from "@/components/OptionSelector";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import CategorySelector from "./CategorySelector";
 
 export default function ServiceKeyEditModal({
   isOpen,
@@ -12,11 +12,9 @@ export default function ServiceKeyEditModal({
   keyId,
   name,
   password,
-  description,
   role,
   onNameChange,
   onPasswordChange,
-  onDescriptionChange,
   onRoleChange,
 }) {
   const overlayRef = useRef(null);
@@ -109,38 +107,14 @@ const handleClose = async () => {
           </div>
           <div>
             <label className="block text-xs font-medium mb-2 uppercase">
-              Description
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => onDescriptionChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300  focus:outline-none focus:ring-2 focus:ring-black"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-2 uppercase">
               Role
             </label>
-            <div className="flex gap-2">
-              {["SERVICE", "ADMIN"].map((roleOption) => (
-                <button
-                  key={roleOption}
-                  onClick={(e) => {
-                    
-                    onRoleChange(roleOption);
-                  }}
-                  className={`px-3 py-2 text-xs font-medium rounded transition-all ${
-                    role === roleOption
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-gray-900 hover:bg-gray-200"
-                  }`}
-                  type="button"
-                >
-                  {roleOption}
-                </button>
-              ))}
-            </div>
+            <OptionSelector
+              options={["RAW-SPORT", "ADMIN"]}
+              selectedValue={role}
+              onValueChange={onRoleChange}
+              isSingleSelect={true}
+            />
           </div>
             </div>
                </div>
@@ -154,8 +128,9 @@ const handleClose = async () => {
               Cancel
             </Button>
              <Button onClick={async () => {
+                            await handleClose();
+
               await onSave(keyId);
-              await handleClose();
             }} className="w-full">
               Save
             </Button>

@@ -157,7 +157,7 @@ export default function Navbar() {
                   </>
               )}
 
-              {session.role === "SERVICE" && (
+              {session.role === "RAW-SPORT" && (
                 <TransitionLink
                   href="/raw-sport"
                   className="text-xs medium transition group relative overflow-hidden"

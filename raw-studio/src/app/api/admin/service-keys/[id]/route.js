@@ -6,13 +6,16 @@ export async function PUT(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
-    const { password, name, description, isActive } = await request.json();
+    const { password, name, role, isActive } = await request.json();
+
+    console.log("PUT /api/admin/service-keys/[id]", { id, password, name, role, isActive });
 
     const key = await prisma.accessKey.findUnique({
       where: { id },
     });
 
-    if (!key || (key.role !== "SERVICE" && key.role !== "ADMIN")) {
+    if (!key) {
+      console.log("Key not found:", id);
       return NextResponse.json(
         { error: "Service key not found" },
         { status: 404 }
@@ -30,7 +33,7 @@ export async function PUT(request, context) {
         );
       }
       updateData.value = await bcrypt.hash(password, 10);
-      updateData.password = password; // Stocker en clair aussi
+      updateData.password = password;
     }
 
     // Si on veut changer le nom
@@ -38,15 +41,17 @@ export async function PUT(request, context) {
       updateData.name = name || null;
     }
 
-    // Si on veut changer la description
-    if (description !== undefined) {
-      updateData.description = description || null;
+    // Si on veut changer le rôle - accept RAW-SPORT, ADMIN, or any other value
+    if (role !== undefined) {
+      updateData.role = role || "RAW-SPORT";
     }
 
     // Si on veut changer le statut
     if (typeof isActive === "boolean") {
       updateData.isActive = isActive;
     }
+
+    console.log("Update data:", updateData);
 
     const updated = await prisma.accessKey.update({
       where: { id },
@@ -55,7 +60,6 @@ export async function PUT(request, context) {
         id: true,
         password: true,
         name: true,
-        description: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -63,6 +67,7 @@ export async function PUT(request, context) {
       },
     });
 
+    console.log("Updated successfully:", updated);
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("Error updating service key:", error);
@@ -82,7 +87,7 @@ export async function DELETE(request, context) {
       where: { id },
     });
 
-    if (!key || (key.role !== "SERVICE" && key.role !== "ADMIN")) {
+    if (!key) {
       return NextResponse.json(
         { error: "Service key not found" },
         { status: 404 }

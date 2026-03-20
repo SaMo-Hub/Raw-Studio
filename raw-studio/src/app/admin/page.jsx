@@ -8,7 +8,15 @@ import Button from "@/components/Button";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Checkbox from "@/components/Checkbox";
 import StatusTag from "@/components/StatusTag";
+import Tag from "@/components/Tag";
 import { Sidebar } from "@/components/Sidebar";
+
+const CATEGORIES = ["COMMERCIAL", "MUSIC VIDEO", "WEB"];
+
+const getCategoryIndex = (category) => {
+  const index = CATEGORIES.indexOf(category);
+  return index >= 0 ? index : 0;
+};
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
@@ -370,18 +378,10 @@ export default function AdminDashboard() {
 
                   {/* Type */}
                   <div>
-                    <span className="inline-block uppercase text-xs px-3 py-1 bg-black text-white rounded-full font-medium">
-                      {project.category
-                        ? (() => {
-                            try {
-                              const techs = JSON.parse(project.category);
-                              return Array.isArray(techs) && techs.length > 0 ? techs[0] : "—";
-                            } catch {
-                              return project.category || "—";
-                            }
-                          })()
-                        : "—"}
-                    </span>
+                    <Tag 
+                      label={project.category || "—"} 
+                      index={getCategoryIndex(project.category)} 
+                    />
                   </div>
 
                   {/* Client */}

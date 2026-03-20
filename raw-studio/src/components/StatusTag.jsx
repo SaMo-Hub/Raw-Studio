@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-export default function StatusTag({ isActive }) {
+export default function StatusTag({ isActive, option = ["ACTIVE", "INACTIVE"], role = "status" }) {
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -15,8 +15,12 @@ export default function StatusTag({ isActive }) {
     <span
       className={`text-xs px-3 py-1 rounded-full font-medium transition-all duration-300 ease-out inline-block overflow-hidden h-5 ${
         isActive
-          ? "bg-green-100 text-green-700"
-          : "bg-gray-100 text-gray-700"
+          ? role === "status"
+            ? "bg-green-100 text-green-700"
+            : `bg-blue-100 text-blue-700`
+          : role === "status"
+          ? "bg-gray-100 text-gray-700"
+          : `bg-orange-100 text-orange-700`
       }`}
       style={{
         animation: animate ? 'statusPulse 0.3s ease-out' : 'none',
@@ -28,14 +32,14 @@ export default function StatusTag({ isActive }) {
             isActive ? "translate-y-full" : "translate-y-0"
           }`}
         >
-          INACTIVE
+          {option[1]}
         </span>
         <span
           className={`block transition-transform text-center duration-700 ease-out absolute t -top-0.1 left-0 right-0 ${
             isActive ? "translate-y-0" : "-translate-y-full"
           }`}
         >
-          ACTIVE
+          {option[0]}
         </span>
       </span>
     </span>

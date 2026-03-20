@@ -24,7 +24,7 @@ function Carousel({ title, items, icon, gallery, description, reverse = false })
       try {
         const response = await fetch("/api/auth/session");
         const data = await response.json();
-        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "SERVICE")) {
+        if (data.isLoggedIn && (data.role === "ADMIN" || data.role === "RAW-SPORT")) {
           setIsAuthorized(true);
         } else {
           router.push("/login");
