@@ -180,10 +180,10 @@ export default function AdminDashboard() {
   return (
     <div className="pl-56  min-h-screen flex bg-white">
       <Sidebar />
-      <div className="px-6 py-4">
-        <div className=" mx-auto">
+      <div className="px-6 py-4 w-full">
+        <div className="w-full mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex w-full items-center justify-between mb-12">
             <div>
               <h1 className="text-4xl font-bold  uppercase">Project</h1>
               <p className="text-gray-600 text-sm">View your projects</p>

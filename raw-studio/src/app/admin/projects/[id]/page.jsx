@@ -20,7 +20,7 @@ export default function EditProjectPage() {
     slug: "",
     shortDesc: "",
     longDesc: "",
-    categories: "",
+    category: "",
     externalLink: "",
     featured: false,
   });
@@ -70,16 +70,16 @@ export default function EditProjectPage() {
           const project = await response.json();
 
           let cats = "";
-          if (project.technologies) {
+          if (project.category) {
             try {
               const parsedTechs =
-                typeof project.technologies === "string"
-                  ? JSON.parse(project.technologies)
-                  : project.technologies;
+                typeof project.category === "string"
+                  ? JSON.parse(project.category)
+                  : project.category;
               cats = Array.isArray(parsedTechs) && parsedTechs.length > 0 ? parsedTechs[0] : "";
             } catch (e) {
               // Si le parse échoue, traiter comme une string simple
-              cats = typeof project.technologies === "string" ? project.technologies : "";
+              cats = typeof project.category === "string" ? project.category : "";
             }
           }
 
@@ -105,7 +105,7 @@ export default function EditProjectPage() {
             slug: project.slug || "",
             shortDesc: project.shortDesc || "",
             longDesc: project.longDesc || "",
-            categories: cats,
+            category: cats,
             externalLink: project.externalLink || "",
             featured: project.featured || false,
           });
@@ -452,7 +452,7 @@ export default function EditProjectPage() {
         body: JSON.stringify({
           ...formData,
           images: uploadedImages,
-          technologies: formData.categories,
+          category: formData.category,
         }),
       });
 
@@ -628,9 +628,9 @@ export default function EditProjectPage() {
       
           <OptionSelector
             options={["COMMERCIAL", "MUSIC VIDEO", "WEB"]}
-            selectedValue={formData.categories}
-            onValueChange={(categories) =>
-              setFormData({ ...formData, categories })
+            selectedValue={formData.category}
+            onValueChange={(category) =>
+              setFormData({ ...formData, category })
             }
             isSingleSelect={true}
           />

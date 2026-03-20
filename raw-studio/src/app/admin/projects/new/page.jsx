@@ -31,7 +31,7 @@ export default function NewProjectPage() {
     slug: "",
     shortDesc: "",
     longDesc: "",
-    categories: [],
+    category: "",
     externalLink: "",
     featured: false,
   });
@@ -312,7 +312,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           ...formData,
           images: uploadedImages,
-          technologies: formData.categories,
+          category: formData.category,
           isActive: !isDraft,
         }),
       });
@@ -425,9 +425,9 @@ export default function NewProjectPage() {
 
           <OptionSelector
             options={["COMMERCIAL", "MUSIC VIDEO", "WEB"]}
-            selectedValue={formData.categories}
-            onValueChange={(categories) =>
-              setFormData({ ...formData, categories })
+            selectedValue={formData.category}
+            onValueChange={(category) =>
+              setFormData({ ...formData, category })
             }
             isSingleSelect={true}
           />
@@ -715,6 +715,14 @@ export default function NewProjectPage() {
             ))}
           </div>
         )}
+         <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleImageUpload}
+        className="hidden"
+      />  
       </div>
     </form>
   );
