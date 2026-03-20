@@ -48,7 +48,7 @@ export async function PUT(request, context) {
         ...(shortDesc && { shortDesc }),
         ...(longDesc && { longDesc }),
         ...(client && { client }),
-        ...(images && { images: typeof images === "string" ? images : JSON.stringify(images) }),
+        ...(images !== undefined && { images: typeof images === "string" ? images : JSON.stringify(images) }),
         ...(category && { category }),
         ...(externalLink !== undefined && { externalLink }),
         ...(featured !== undefined && { featured }),
