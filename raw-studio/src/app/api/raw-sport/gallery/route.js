@@ -1,12 +1,15 @@
-import prisma from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    // Get all gallery items sorted by category and display order
-    const items = await prisma.rawSportGalleryItem.findMany({
-      where: { isActive: true },
-      orderBy: [{ category: "asc" }, { displayOrder: "asc" }],
-    });
+    const { data: items, error } = await supabaseAdmin
+      .from("RawSportGalleryItem")
+      .select("*")
+      .eq("isActive", true)
+      .order("category", { ascending: true })
+      .order("displayOrder", { ascending: true });
+
+    if (error) throw error;
     return Response.json(items);
   } catch (error) {
     console.error("Get raw-sport gallery items error:", error);
@@ -26,16 +29,19 @@ export async function POST(request) {
       return Response.json({ error: "Invalid category. Must be 'photo', 'graphic-design', or 'film'" }, { status: 400 });
     }
 
-    const item = await prisma.rawSportGalleryItem.create({
-      data: {
+    const { data: item, error } = await supabaseAdmin
+      .from("RawSportGalleryItem")
+      .insert({
         imageName,
         imageUrl,
         category,
         isActive: isActive !== undefined ? isActive : true,
         displayOrder: displayOrder || 0,
-      },
-    });
+      })
+      .select()
+      .single();
 
+    if (error) throw error;
     return Response.json(item, { status: 201 });
   } catch (error) {
     console.error("Create gallery item error:", error);

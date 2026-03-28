@@ -1,17 +1,30 @@
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { supabase } from "@/lib/supabase";
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "50mb",
-    },
-  },
-};
+const BUCKET_NAME = "raw-studio-media";
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+const ALLOWED_TYPES = [
+  "image/",
+  "video/",
+  "image/gif",
+];
 
 export async function POST(request) {
   try {
+    const sessionResponse = await fetch(
+      new URL("/api/auth/session", request.url),
+      { headers: { cookie: request.headers.get("cookie") || "" } }
+    );
+
+    if (!sessionResponse.ok) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const session = await sessionResponse.json();
+    if (!session.isLoggedIn || session.role !== "ADMIN") {
+      return Response.json({ error: "Admin access required" }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -19,40 +32,40 @@ export async function POST(request) {
       return Response.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Vérifier que c'est une image
-    if (!file.type.startsWith("image/")) {
-      return Response.json({ error: "Only images are allowed" }, { status: 400 });
+    const isAllowed = ALLOWED_TYPES.some((type) => file.type.startsWith(type));
+    if (!isAllowed) {
+      return Response.json({ error: "Type de fichier non autorisé" }, { status: 400 });
     }
 
-    // Vérifier la taille (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return Response.json({ error: "File size exceeds 5MB" }, { status: 400 });
+    if (file.size > MAX_SIZE) {
+      return Response.json({ error: "Fichier trop volumineux (max 50MB)" }, { status: 400 });
     }
 
-    // Créer le dossier public/uploads s'il n'existe pas
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    // Générer un nom de fichier unique
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(7);
     const filename = `${timestamp}-${randomString}-${file.name}`;
-    const filepath = join(uploadsDir, filename);
 
-    // Convertir le fichier en buffer et l'écrire
     const buffer = await file.arrayBuffer();
-    await writeFile(filepath, Buffer.from(buffer));
+    const fileBuffer = Buffer.from(buffer);
 
-    // Retourner l'URL publique
-    const publicUrl = `/uploads/${filename}`;
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(filename, fileBuffer, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false,
+      });
 
-    return Response.json({
-      success: true,
-      url: publicUrl,
-      filename: filename,
-    });
+    if (error) {
+      console.error("Upload error:", error);
+      return Response.json({ error: "Upload failed: " + error.message }, { status: 500 });
+    }
+
+    const publicUrl = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(data.path).data.publicUrl;
+
+    return Response.json({ success: true, url: publicUrl, filename: data.path });
   } catch (error) {
     console.error("Upload error:", error);
     return Response.json({ error: "Upload failed" }, { status: 500 });

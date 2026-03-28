@@ -1,11 +1,13 @@
-import prisma from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    // Afficher TOUS les projets pour les admins (actifs ET inactifs)
-    const projects = await prisma.project.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    const { data: projects, error } = await supabaseAdmin
+      .from("Project")
+      .select("*")
+      .order("displayOrder", { ascending: true });
+
+    if (error) throw error;
     return Response.json(projects);
   } catch (error) {
     console.error("Get all projects error:", error);

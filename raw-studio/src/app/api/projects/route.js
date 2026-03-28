@@ -1,11 +1,14 @@
-import prisma from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const projects = await prisma.project.findMany({
-      where: { isActive: true }, // Afficher seulement les projets actifs
-      orderBy: { displayOrder: "asc" },
-    });
+    const { data: projects, error } = await supabaseAdmin
+      .from("Project")
+      .select("*")
+      .eq("isActive", true)
+      .order("displayOrder", { ascending: true });
+
+    if (error) throw error;
     return Response.json(projects);
   } catch (error) {
     console.error("Get projects error:", error);
@@ -22,8 +25,10 @@ export async function POST(request) {
       return Response.json({ error: "Title and slug required" }, { status: 400 });
     }
 
-    const project = await prisma.project.create({
-      data: {
+    const now = new Date().toISOString();
+    const { data: project, error } = await supabaseAdmin
+      .from("Project")
+      .insert({
         title,
         slug,
         shortDesc,
@@ -34,9 +39,12 @@ export async function POST(request) {
         externalLink,
         featured: featured || false,
         isActive: isActive !== undefined ? isActive : true,
-      },
-    });
+        updatedAt: now,
+      })
+      .select()
+      .single();
 
+    if (error) throw error;
     return Response.json(project, { status: 201 });
   } catch (error) {
     console.error("Create project error:", error);

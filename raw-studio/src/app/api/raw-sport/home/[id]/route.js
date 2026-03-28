@@ -1,4 +1,4 @@
-import prisma from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(request, context) {
   try {
@@ -9,11 +9,13 @@ export async function GET(request, context) {
       return Response.json({ error: "Item ID is required" }, { status: 400 });
     }
 
-    const item = await prisma.rawSportHomeItem.findUnique({
-      where: { id },
-    });
+    const { data: item, error } = await supabaseAdmin
+      .from("RawSportHomeItem")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-    if (!item) {
+    if (error || !item) {
       return Response.json({ error: "Item not found" }, { status: 404 });
     }
 
@@ -34,18 +36,21 @@ export async function PUT(request, context) {
       return Response.json({ error: "Invalid type. Must be 'athletes', 'press', or 'clubs'" }, { status: 400 });
     }
 
-    const item = await prisma.rawSportHomeItem.update({
-      where: { id },
-      data: {
+    const { data: item, error } = await supabaseAdmin
+      .from("RawSportHomeItem")
+      .update({
         ...(imageName && { imageName }),
         ...(imageUrl && { imageUrl }),
         ...(type && { type }),
         ...(client !== undefined && { client: client || null }),
         ...(isActive !== undefined && { isActive }),
         ...(displayOrder !== undefined && { displayOrder }),
-      },
-    });
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
+    if (error) throw error;
     return Response.json(item);
   } catch (error) {
     console.error("Update home item error:", error);
@@ -57,11 +62,13 @@ export async function DELETE(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
-    
-    await prisma.rawSportHomeItem.delete({
-      where: { id },
-    });
 
+    const { error } = await supabaseAdmin
+      .from("RawSportHomeItem")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
     return Response.json({ success: true });
   } catch (error) {
     console.error("Delete home item error:", error);

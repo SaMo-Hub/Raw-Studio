@@ -1,12 +1,15 @@
-import prisma from "@/lib/db";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    // Get all home items sorted by type and display order
-    const items = await prisma.rawSportHomeItem.findMany({
-      where: { isActive: true },
-      orderBy: [{ type: "asc" }, { displayOrder: "asc" }],
-    });
+    const { data: items, error } = await supabaseAdmin
+      .from("RawSportHomeItem")
+      .select("*")
+      .eq("isActive", true)
+      .order("type", { ascending: true })
+      .order("displayOrder", { ascending: true });
+
+    if (error) throw error;
     return Response.json(items);
   } catch (error) {
     console.error("Get raw-sport home items error:", error);
@@ -26,17 +29,20 @@ export async function POST(request) {
       return Response.json({ error: "Invalid type. Must be 'athletes', 'press', or 'clubs'" }, { status: 400 });
     }
 
-    const item = await prisma.rawSportHomeItem.create({
-      data: {
+    const { data: item, error } = await supabaseAdmin
+      .from("RawSportHomeItem")
+      .insert({
         imageName,
         imageUrl,
         type,
         client: client || null,
         isActive: isActive !== undefined ? isActive : true,
         displayOrder: displayOrder || 0,
-      },
-    });
+      })
+      .select()
+      .single();
 
+    if (error) throw error;
     return Response.json(item, { status: 201 });
   } catch (error) {
     console.error("Create home item error:", error);
