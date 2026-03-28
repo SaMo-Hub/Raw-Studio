@@ -86,12 +86,11 @@ export default function NewProjectPage() {
     if (index > 0) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index - 1]] = [
-          newArray[index - 1],
-          newArray[index],
-        ];
+        [newArray[index], newArray[index - 1]] = [newArray[index - 1], newArray[index]];
         return newArray;
       });
+      if (selectedImageIndex === index) setSelectedImageIndex(index - 1);
+      else if (selectedImageIndex === index - 1) setSelectedImageIndex(index);
     }
     setContextMenu(null);
   };
@@ -100,12 +99,11 @@ export default function NewProjectPage() {
     if (index < uploadedImages.length - 1) {
       setUploadedImages((prev) => {
         const newArray = [...prev];
-        [newArray[index], newArray[index + 1]] = [
-          newArray[index + 1],
-          newArray[index],
-        ];
+        [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
         return newArray;
       });
+      if (selectedImageIndex === index) setSelectedImageIndex(index + 1);
+      else if (selectedImageIndex === index + 1) setSelectedImageIndex(index);
     }
     setContextMenu(null);
   };
@@ -116,6 +114,8 @@ export default function NewProjectPage() {
         const img = prev[index];
         return [img, ...prev.slice(0, index), ...prev.slice(index + 1)];
       });
+      if (selectedImageIndex === index) setSelectedImageIndex(0);
+      else if (selectedImageIndex !== null && selectedImageIndex < index) setSelectedImageIndex(selectedImageIndex + 1);
     }
     setContextMenu(null);
   };
@@ -126,6 +126,8 @@ export default function NewProjectPage() {
         const img = prev[index];
         return [...prev.slice(0, index), ...prev.slice(index + 1), img];
       });
+      if (selectedImageIndex === index) setSelectedImageIndex(uploadedImages.length - 1);
+      else if (selectedImageIndex !== null && selectedImageIndex > index) setSelectedImageIndex(selectedImageIndex - 1);
     }
     setContextMenu(null);
   };
@@ -340,12 +342,12 @@ export default function NewProjectPage() {
     <form
       onSubmit={(e) => handleSubmit(e, false)}
       ref={pageRef}
-      className="flex pb-12 pt-30.5 relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
+      className="flex relative h-screen overflow-x-scroll overflow-y-hidden bg-white"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* Navbar */}
     
-      <nav className="flex   top-0 fixed w-full justify-between items-center px-12 mt-12">
+      <nav className="flex z-20 top-0 fixed w-full justify-between items-center px-6 mt-6">
         <Button variant="secondary" href="/admin">
           Cancel
         </Button>
@@ -364,7 +366,7 @@ export default function NewProjectPage() {
         </div>
       </nav>
       {/* LEFT COLUMN - fixe */}
-      <div className="w-fit z-20 bg--300 fixed left-0 shrink-0 h-full text-whte mix-blnd-difference px-12  flex flex-col justify-start z-10">
+      <div className="bg-white pt-30 w-[338px] fixed left-0 shrink-0 h-full text-black px-6 flex flex-col justify-start z-10">
         <h1 className="  font-bold mb-8 leading-tight">
           <input
             type="text"
@@ -376,14 +378,14 @@ export default function NewProjectPage() {
           />
         </h1>
 
-        <div className="text-md flex gap-4">
+        <div className="flex gap-4">
           <div className="uppercase space-y-4 text-gray-500">
             <p>client</p>
             <p>slug</p>
             <p>short desc</p>
             <p>information</p>
           </div>
-          <div className="space-y-4 flex flex-col">
+          <div className="space-y-4 mb-4  w-full flex flex-col">
             <input
               type="text"
               name="client"
@@ -443,7 +445,6 @@ export default function NewProjectPage() {
                 className={`shrink-0 flex relative group h-full transition-all cursor-pointer ${
                   selectedImageIndex === idx ? "ring-4 ring-blue-500" : ""
                 }`}
-                style={{ width: "100vw" }}
                 onClick={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
                   const y = e.clientY - rect.top;
@@ -463,7 +464,7 @@ export default function NewProjectPage() {
                 {/* Action Bar - visible quand l'image est sélectionnée */}
                 {selectedImageIndex === idx && selectedImagePosition && (
                   <div
-                    className="absolute bg-white border border-gray-300 rounded shadow-lg flex gap-2 px-3 py-2 z-40"
+                    className="absolute z-10 rounded-0 bg-white flex gap-2 px-3 py-2"
                     style={{
                       top: `${selectedImagePosition.y}px`,
                       left: `${selectedImagePosition.x}px`,
@@ -477,10 +478,12 @@ export default function NewProjectPage() {
                         moveImageUp(idx);
                       }}
                       disabled={idx === 0}
-                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire reculer"
                     >
-                      ←
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.33333 15.8334L2.5 10.0001M2.5 10.0001L8.33333 4.16675M2.5 10.0001L17.5 10.0001" stroke="#414651" strokeWidth="1.66667" />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -489,10 +492,12 @@ export default function NewProjectPage() {
                         moveImageDown(idx);
                       }}
                       disabled={idx === uploadedImages.length - 1}
-                      className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       title="Faire avancer"
                     >
-                      →
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11.6667 15.8332L17.5 9.99984M17.5 9.99984L11.6667 4.1665M17.5 9.99984L2.5 9.99984" stroke="#414651" strokeWidth="1.66667" />
+                      </svg>
                     </button>
                     <div className="w-px bg-gray-300"></div>
                     <button
@@ -501,10 +506,12 @@ export default function NewProjectPage() {
                         e.stopPropagation();
                         duplicateImage(idx);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded transition"
+                      className="p-2 hover:bg-gray-100 transition"
                       title="Dupliquer"
                     >
-                      ⎘
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.52702 4.20054V1.68213H18.3604V12.5155H15.8589M12.4738 7.485H1.64048V18.3183H12.4738V7.485Z" stroke="#414651" strokeWidth="1.66667" />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -512,10 +519,12 @@ export default function NewProjectPage() {
                         e.stopPropagation();
                         replaceImage(idx);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded transition"
+                      className="p-2 hover:bg-gray-100 transition"
                       title="Remplacer"
                     >
-                      🖊
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.75 5.68941L13.8766 2.5L17.5 6.06514L7.375 16.0245L2.5 17.5L3.75164 12.8283L10.75 5.68941ZM10.75 5.68941L14.3734 9.25454" stroke="#414651" strokeWidth="1.66667" />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -523,10 +532,12 @@ export default function NewProjectPage() {
                         e.stopPropagation();
                         removeImage(idx);
                       }}
-                      className="p-2 hover:bg-red-100 text-red-600 rounded transition"
+                      className="p-2 hover:bg-red-100 text-red-600 transition"
                       title="Supprimer"
                     >
-                      🗑
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4.75 7.2561V17.5H15.25V7.2561M6.625 5.42683H2.5M6.625 5.42683L8.17188 2.5H12.3438L13.375 5.42683M6.625 5.42683H13.375M17.5 5.42683H13.375M11.5 8.35366V14.939M8.5 8.35366V14.939" stroke="#414651" strokeWidth="1.66667" />
+                      </svg>
                     </button>
                   </div>
                 )}
@@ -537,14 +548,10 @@ export default function NewProjectPage() {
                     e.stopPropagation();
                     removeImage(idx);
                   }}
-                  className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition"
+                  className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 text-xs opacity-0 group-hover:opacity-100 transition"
                 >
                   ✕
                 </button>
-                {/* Image counter */}
-                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded text-xs">
-                  {idx + 1} / {uploadedImages.length}
-                </div>
               </div>
             ))}
             {/* Upload section after images */}
@@ -608,7 +615,7 @@ export default function NewProjectPage() {
                       onDragOver={(e) => handleReorderDragOver(e, idx)}
                       onDragLeave={handleReorderDragLeave}
                       onDrop={(e) => handleReorderDrop(e, idx)}
-                      className={`flex items-center gap-3 p-3 border rounded transition cursor-grab active:cursor-grabbing ${
+                      className={`flex items-center gap-3 p-3 border transition cursor-grab active:cursor-grabbing ${
                         draggedIndex === idx
                           ? "opacity-50 border-gray-400 bg-gray-50"
                           : dragOverIndex === idx
@@ -620,7 +627,7 @@ export default function NewProjectPage() {
                       <img
                         src={img}
                         alt={`Image ${idx + 1}`}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-12 h-12 object-cover"
                         draggable="false"
                       />
                       <div className="flex-1">
@@ -646,65 +653,28 @@ export default function NewProjectPage() {
         {/* Context Menu */}
         {contextMenu && (
           <div
-            className="fixed bg-white border uppercase  z-50 text-xs"
+            className="fixed bg-white border uppercase z-50 text-xs"
             style={{
               top: `${contextMenu.y}px`,
               left: `${contextMenu.x}px`,
             }}
           >
             {[
-              {
-                label: "Remplacer",
-                onClick: () => replaceImage(contextMenu.index),
-                disabled: false,
-              },
-              {
-                label: "Dupliquer",
-                onClick: () => duplicateImage(contextMenu.index),
-                disabled: false,
-              },
-              {
-                label: "Réorganiser",
-                onClick: () => {
-                  setReorderItemIndex(contextMenu.index);
-                  setIsReorderModalOpen(true);
-                  setContextMenu(null);
-                },
-                disabled: false,
-              },
-              {
-                label: "Faire reculer",
-                onClick: () => moveImageUp(contextMenu.index),
-                disabled: contextMenu.index === 0,
-              },
-              {
-                label: "Faire avancer",
-                onClick: () => moveImageDown(contextMenu.index),
-                disabled: contextMenu.index === uploadedImages.length - 1,
-              },
-              {
-                label: "Première position",
-                onClick: () => moveImageToFirst(contextMenu.index),
-                disabled: contextMenu.index === 0,
-              },
-              {
-                label: "Dernière position",
-                onClick: () => moveImageToLast(contextMenu.index),
-                disabled: contextMenu.index === uploadedImages.length - 1,
-              },
-              {
-                label: "Supprimer",
-                onClick: () => removeImage(contextMenu.index),
-                disabled: false,
-                isDelete: true,
-              },
-            ].map((action, idx, arr) => (
+              { label: "Remplacer", onClick: () => replaceImage(contextMenu.index), disabled: false },
+              { label: "Dupliquer", onClick: () => duplicateImage(contextMenu.index), disabled: false },
+              { label: "Réorganiser", onClick: () => { setReorderItemIndex(contextMenu.index); setIsReorderModalOpen(true); setContextMenu(null); }, disabled: false },
+              { label: "Faire reculer", onClick: () => moveImageUp(contextMenu.index), disabled: contextMenu.index === 0 },
+              { label: "Faire avancer", onClick: () => moveImageDown(contextMenu.index), disabled: contextMenu.index === uploadedImages.length - 1 },
+              { label: "Première position", onClick: () => moveImageToFirst(contextMenu.index), disabled: contextMenu.index === 0 },
+              { label: "Dernière position", onClick: () => moveImageToLast(contextMenu.index), disabled: contextMenu.index === uploadedImages.length - 1 },
+              { label: "Supprimer", onClick: () => removeImage(contextMenu.index), disabled: false, isDelete: true },
+            ].map((action, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={action.onClick}
                 disabled={action.disabled}
-                className={`block w-full uppercase text-left p-4 -2 py-2 ${
+                className={`block w-full uppercase text-left p-4 py-2 ${
                   action.isDelete
                     ? "hover:bg-red-100 text-red-600"
                     : "hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -715,15 +685,16 @@ export default function NewProjectPage() {
             ))}
           </div>
         )}
-         <input
+      </div>
+
+      <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         onChange={handleImageUpload}
         className="hidden"
-      />  
-      </div>
+      />
     </form>
   );
 }

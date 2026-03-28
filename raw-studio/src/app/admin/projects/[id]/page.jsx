@@ -587,7 +587,7 @@ export default function EditProjectPage() {
             {/* <p>Type</p> */}
             <p>information</p>
           </div>
-          <div className="space-y-4 w-full flex flex-col">
+          <div className="space-y-4 mb-4 w-full flex flex-col">
             <input
               type="text"
               name="client"
