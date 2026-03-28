@@ -582,7 +582,6 @@ export default function EditProjectPage() {
         <div className="flex gap-4">
           <div className="uppercase space-y-4 text-gray-500">
             <p>client</p>
-            <p>slug</p>
             <p>short desc</p>
             {/* <p>Type</p> */}
             <p>information</p>
@@ -595,14 +594,6 @@ export default function EditProjectPage() {
               onChange={handleChange}
               className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
               placeholder="Client"
-            />
-            <input
-              type="text"
-              name="slug"
-              value={formData.slug}
-              onChange={handleChange}
-              className="bg-transparent focus:outline-none border-b border-transparent focus:border-gray-400"
-              placeholder="Slug"
             />
             <input
               type="text"

@@ -21,16 +21,22 @@ export async function POST(request) {
     const { title, slug, shortDesc, longDesc, client, images, category, externalLink, featured, isActive } =
       await request.json();
 
-    if (!title || !slug) {
-      return Response.json({ error: "Title and slug required" }, { status: 400 });
+    if (!title) {
+      return Response.json({ error: "Title required" }, { status: 400 });
     }
+
+    const autoSlug = (slug || title)
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
 
     const now = new Date().toISOString();
     const { data: project, error } = await supabaseAdmin
       .from("Project")
       .insert({
         title,
-        slug,
+        slug: autoSlug,
         shortDesc,
         longDesc,
         client,
